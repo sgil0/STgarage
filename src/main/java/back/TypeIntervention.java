@@ -1,22 +1,25 @@
 package back;
 
 import jakarta.persistence.*;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
 @Entity
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = "categorie_type")
 public abstract class TypeIntervention {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
     private String nom;
+    private int duree;
+    private float tauxHoraire;
 
     // Intervention one to many
     @OneToMany(mappedBy = "typeIntervention")
-    private Collection<Intervention> idInterventions;
+    private Collection<Intervention> interventions;
 
     // Pieces many to many
     @ManyToMany
@@ -25,32 +28,46 @@ public abstract class TypeIntervention {
             joinColumns = @JoinColumn(name = "idIntervention"),
             inverseJoinColumns = @JoinColumn(name = "refPiece")
     )
-    private List<Pieces> refPiecesUtilisees;
+    private List<Pieces> piecesUtilisees;
 
     public TypeIntervention() {
         this.nom = "default";
-        this.idInterventions = new ArrayList<>(); // Initialisation de la collection vide
-        this.refPiecesUtilisees = new ArrayList<>(); // Très important aussi pour le ManyToMany
+        this.duree = 120; // 120 minutes
+        this.interventions = new ArrayList<>(); // Initialisation de la collection vide
+        this.piecesUtilisees = new ArrayList<>(); // Très important aussi pour le ManyToMany
+        this.tauxHoraire = 90;
     }
 
     public void setNom(String nom) {
         this.nom = nom;
     }
 
-    public List<Pieces> getRefPiecesUtilisees() {
-        return refPiecesUtilisees;
+    public List<Pieces> getPiecesUtilisees() {
+        return piecesUtilisees;
     }
 
-    public Collection<Intervention> getIdInterventions() {
-        return idInterventions;
+    public Collection<Intervention> getInterventions() {
+        return interventions;
     }
 
     public String getNom() {
         return nom;
     }
 
+    public int getDuree() {
+        return duree;
+    }
+
     public long getId() {
         return id;
+    }
+
+    public float getTauxHoraire() {
+        return tauxHoraire;
+    }
+
+    public void setTauxHoraire(float tauxHoraire) {
+        this.tauxHoraire = tauxHoraire;
     }
 
     @Override
@@ -69,8 +86,8 @@ public abstract class TypeIntervention {
         return "TypeIntervention{" +
                 "id=" + id +
                 ", nom='" + nom + '\'' +
-                ", idInterventions=" + idInterventions +
-                ", refPiecesUtilisees=" + refPiecesUtilisees +
+                ", idInterventions=" + interventions +
+                ", refPiecesUtilisees=" + piecesUtilisees +
                 '}';
     }
 }

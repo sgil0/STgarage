@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 
 @Entity
@@ -24,8 +25,8 @@ public class TypeVehicule {
     private int puissance;
 
     // Vehicule one to many
-    @OneToMany(mappedBy = "idTypeVehicule")
-    private Collection<Vehicule> immatsVehicules;
+    @OneToMany(mappedBy = "typeVehicule")
+    private Collection<Vehicule> vehicules;
 
     // Pièces many to many
     @ManyToMany
@@ -35,6 +36,33 @@ public class TypeVehicule {
             inverseJoinColumns = @JoinColumn(name = "refPiece")
     )
     private List<Pieces> pieces;
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof TypeVehicule that)) return false;
+        return id == that.id;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id);
+    }
+
+    @Override
+    public String toString() {
+        return "TypeVehicule{" +
+                "id=" + id +
+                ", marque='" + marque + '\'' +
+                ", modele='" + modele + '\'' +
+                ", energie=" + energie +
+                ", boiteVitesse=" + boiteVitesse +
+                ", nbPlaces=" + nbPlaces +
+                ", nbPortes=" + nbPortes +
+                ", puissance=" + puissance +
+                ", immatsVehicules=" + vehicules +
+                ", pieces=" + pieces +
+                '}';
+    }
 }
 
 

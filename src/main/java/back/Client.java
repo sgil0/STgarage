@@ -1,6 +1,7 @@
 package back;
 
 import jakarta.persistence.*;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Objects;
 
@@ -15,15 +16,17 @@ public class Client {
     private String adresse;
 
     // Vehicule one to many
-    @OneToMany(mappedBy = "idProp")
-    private Collection<Vehicule> immatsVehicules;
+    @OneToMany(mappedBy = "proprietaire")
+    private Collection<Vehicule> vehicules;
 
     public Client(String nom, String prenom, String mail, String adresse) {
         this.nom = nom;
         this.prenom = prenom;
         this.mail = mail;
         this.adresse = adresse;
+        this.vehicules = new ArrayList<>();
     }
+    public Client(){}
 
     public long getIdClient() {
         return idClient;
@@ -45,12 +48,12 @@ public class Client {
         return adresse;
     }
 
-    public Collection<Vehicule> getImmatsVehicules() {
-        return immatsVehicules;
+    public Collection<Vehicule> getVehicules() {
+        return vehicules;
     }
 
-    public void setImmatsVehicules(Collection<Vehicule> immatsVehicules) {
-        this.immatsVehicules = immatsVehicules;
+    public void setVehicules(Collection<Vehicule> vehicules) {
+        this.vehicules = vehicules;
     }
 
     @Override
@@ -73,7 +76,7 @@ public class Client {
                 ", prenom='" + prenom + '\'' +
                 ", mail='" + mail + '\'' +
                 ", adresse='" + adresse + '\'' +
-                ", immatsVehicules=" + immatsVehicules +
+                ", immatsVehicules=" + vehicules +
                 '}';
     }
 }
