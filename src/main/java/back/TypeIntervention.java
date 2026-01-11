@@ -47,6 +47,8 @@ public abstract class TypeIntervention {
         return piecesUtilisees;
     }
 
+    public void setPiecesUtilisees(List<Pieces> piecesUtilisees) { this.piecesUtilisees = piecesUtilisees;}
+
     public Collection<Intervention> getInterventions() {
         return interventions;
     }
@@ -58,6 +60,8 @@ public abstract class TypeIntervention {
     public int getDuree() {
         return duree;
     }
+
+    public void setDuree(int duree) { this.duree = duree; }
 
     public long getId() {
         return id;
@@ -72,16 +76,6 @@ public abstract class TypeIntervention {
     }
 
     // Calcule le prix théorique (Le Devis) C'est ce prix qu'on affiche quand on sélectionne "Vidange" avant de modifier les pièces.
-
-    public float getPrix() {
-        float coutMainDoeuvre = this.tauxHoraire * this.duree;
-        float coutPieces = 0;
-
-        for (Pieces p : this.piecesUtilisees) {
-            coutPieces += p.getPrix();
-        }
-        return coutMainDoeuvre + coutPieces;
-    }
 
     @Override
     public boolean equals(Object o) {

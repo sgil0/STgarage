@@ -3,6 +3,7 @@ package back;
 import back.EnumType.ZoneIntervention;
 import jakarta.persistence.*;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -21,11 +22,21 @@ public class Pieces {
     private Collection<TypeVehicule> typesVehicules;
 
     // TypeIntervention many to many
-    @ManyToMany(mappedBy = "refPiecesUtilisees")
+    @ManyToMany(mappedBy = "piecesUtilisees")
     private List<TypeIntervention> interventionsLiees;
 
     @ManyToMany(mappedBy = "piecesReelles")
     private List<Intervention> interventions;
+
+    public Pieces(String ref, String nom, float prix, ZoneIntervention zone){
+        this.ref = ref;
+        this.nom = nom;
+        this.prix = prix;
+        this.zone = zone;
+        this.typesVehicules = new ArrayList<>();;
+        this.interventionsLiees = new ArrayList<>();;
+        this.interventions = new ArrayList<>();;
+    }
 
     public float getPrix() {
         return this.prix;

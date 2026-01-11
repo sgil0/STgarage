@@ -1,6 +1,8 @@
 package back;
 
 import jakarta.persistence.*;
+
+import java.sql.Date;
 import java.time.LocalDate;
 import java.time.Month;
 import java.util.ArrayList;
@@ -57,6 +59,15 @@ public class Vehicule{
         this.miseCirc = LocalDate.of(2000, Month.JANUARY, 1); // par défaut 01/01/2000
         this.kilometrage = 1000;
         this.proprietaire = null;
+        this.listeInterventions = new ArrayList<>();
+        this.typeVehicule = null;
+    }
+
+    public Vehicule(String s, LocalDate date, int i, Client client) {
+        this.immatriculation = s;
+        this.miseCirc = date;
+        this.kilometrage = (float) i;
+        this.proprietaire = client;
         this.listeInterventions = new ArrayList<>();
         this.typeVehicule = null;
     }
