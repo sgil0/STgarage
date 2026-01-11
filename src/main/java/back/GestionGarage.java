@@ -117,7 +117,7 @@ public class GestionGarage {
 
             // 4. Création de l'Intervention (Le Dossier)
             Intervention intervention = new Intervention();
-            intervention.setDate(Date.valueOf(LocalDate.now()).toLocalDate()); // Date du jour
+            intervention.setDate(LocalDate.now()); // Date du jour
             intervention.setVehicule(v);
             intervention.setTypeIntervention(type);
             intervention.setPiecesReelles(piecesChoisies); // La liste spécifique du schéma 2D

@@ -16,6 +16,7 @@ public abstract class TypeIntervention {
     private String nom;
     private int duree;
     private float tauxHoraire;
+    private float prix;
 
     // Intervention one to many
     @OneToMany(mappedBy = "typeIntervention")
@@ -68,6 +69,18 @@ public abstract class TypeIntervention {
 
     public void setTauxHoraire(float tauxHoraire) {
         this.tauxHoraire = tauxHoraire;
+    }
+
+    // Calcule le prix théorique (Le Devis) C'est ce prix qu'on affiche quand on sélectionne "Vidange" avant de modifier les pièces.
+
+    public float getPrix() {
+        float coutMainDoeuvre = this.tauxHoraire * this.duree;
+        float coutPieces = 0;
+
+        for (Pieces p : this.piecesUtilisees) {
+            coutPieces += p.getPrix();
+        }
+        return coutMainDoeuvre + coutPieces;
     }
 
     @Override
