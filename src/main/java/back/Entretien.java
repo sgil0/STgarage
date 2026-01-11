@@ -3,6 +3,7 @@ package back;
 import jakarta.persistence.*;
 
 @Entity
+@DiscriminatorValue("ENTRETIEN")
 public class Entretien extends TypeIntervention {
     private float kilometrageMax;
     private int dureeMaxMois;

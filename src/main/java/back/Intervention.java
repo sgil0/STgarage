@@ -41,77 +41,82 @@ public class Intervention {
     )
     private List<Pieces> piecesReelles;
 
+    /**
+     * Constructeur STANDARD (Cas où l'utilisateur ne modifie pas le schéma)
+     */
     public Intervention(Vehicule vehicule, TypeIntervention typeIntervention, float kilometrage) {
         this.date = LocalDate.now();
-        this.kilometrage = kilometrage; // La vérif du kilometrage > kilometrage voiture se fait dans front avant l'envoie du formulaire
-        this.prix = (((float) typeIntervention.getDuree() / 60) * typeIntervention.getTauxHoraire()) + calculerCoutPieces(typeIntervention.getPiecesUtilisees());
+        this.kilometrage = kilometrage;
         this.vehicule = vehicule;
         this.typeIntervention = typeIntervention;
-        this.statut = StatutIntervention.PLANIFIEE; // Par défaut
-        this.piecesReelles = typeIntervention.getPiecesUtilisees();
+        this.statut = StatutIntervention.PLANIFIEE;
+
+        // SÉCURITÉ : On crée une NOUVELLE liste copiée depuis le modèle
+        this.piecesReelles = new ArrayList<>(typeIntervention.getPiecesUtilisees());
+
+        // Calcul du prix initial
+        calculerEtMettreAJourPrix();
     }
 
     public Intervention() {
         this.piecesReelles = new ArrayList<>();
     }
 
-    // Constructeur pour le cas "Sur Mesure"
-    public Intervention(LocalDate date, float duree, Vehicule vehicule, TypeIntervention type, List<Pieces> piecesDuSchema) {
-        this.date = date;
+    /**
+     * Constructeur SUR MESURE (Cas où l'utilisateur a modifié le schéma 2D)
+     */
+    public Intervention(Vehicule vehicule, TypeIntervention type, float kilometrage, List<Pieces> piecesDuSchema) {
+        this.date = LocalDate.now();
+        this.kilometrage = kilometrage;
         this.vehicule = vehicule;
         this.typeIntervention = type;
+        this.statut = StatutIntervention.PLANIFIEE;
 
-        // On enregistre ce que l'utilisateur a cliqué sur le schéma
-        this.piecesReelles = piecesDuSchema;
-        this.prix = (((float) type.getDuree() / 60) * type.getTauxHoraire()) + calculerCoutPieces(type.getPiecesUtilisees());
+        // On prend la liste spécifique envoyée par le formulaire
+        this.piecesReelles = piecesDuSchema; // Ici c'est ok car le DAO nous envoie déjà une nouvelle liste
 
+        // Calcul du prix basé sur CES pièces là
+        calculerEtMettreAJourPrix();
     }
 
-    // Constructeur pour le cas "Standard" (Cas A - sans modif du schéma)
-    public Intervention(LocalDate date, float duree, Vehicule v, TypeIntervention type) {
-        this(date, duree, v, type, type.getPiecesUtilisees()); // On prend les pièces par défaut
-    }
+    /**
+     * Méthode centrale pour calculer le prix.
+     * À appeler dès que la liste des pièces change ou à la création.
+     */
+    public void calculerEtMettreAJourPrix() {
+        if (this.typeIntervention == null) return;
 
-    public float calculerCoutPieces(List<Pieces> pieces) {
+        // 1. Coût Main d'Oeuvre (Durée en minutes / 60 * Taux)
+        // Assure-toi que getDuree() dans TypeIntervention retourne bien des minutes (int)
+        float coutMO = ((float) this.typeIntervention.getDuree() / 60.0f) * this.typeIntervention.getTauxHoraire();
+
+        // 2. Coût des pièces RÉELLES
         float coutPieces = 0;
-        for (Pieces p : pieces) {
-            coutPieces += p.getPrix();
+        if (this.piecesReelles != null) {
+            for (Pieces p : this.piecesReelles) {
+                coutPieces += p.getPrix();
+            }
         }
-        return coutPieces;
+
+        this.prix = coutMO + coutPieces;
     }
+
+
 
     // Getter et Setter
-    public List<Pieces> getPiecesReelles() {
-        return piecesReelles;
-    }
-
     public void setPiecesReelles(List<Pieces> piecesReelles) {
         this.piecesReelles = piecesReelles;
+        // Si on change les pièces manuellement via le setter, on pense à recalculer le prix !
+        calculerEtMettreAJourPrix();
     }
 
-    public void setStatut(StatutIntervention nouveauStatut) {
-        this.statut = nouveauStatut;
-    }
-
-    public Float getPrix() {
-        return this.prix;
-    }
-
-    public void setPrix(float prix) {
-        this.prix = prix;
-    }
-
-    public void setDate(LocalDate date) {
-        this.date = date;
-    }
-
-    public void setVehicule(Vehicule vehicule) {
-        this.vehicule = vehicule;
-    }
-
-    public void setTypeIntervention(TypeIntervention typeIntervention) {
-        this.typeIntervention = typeIntervention;
-    }
+    public List<Pieces> getPiecesReelles() { return piecesReelles; }
+    public Float getPrix() { return this.prix; }
+    public void setPrix(float prix) { this.prix = prix; } // Utile si on veut faire une remise manuelle
+    public void setDate(LocalDate date) { this.date = date; }
+    public void setVehicule(Vehicule vehicule) { this.vehicule = vehicule; }
+    public void setTypeIntervention(TypeIntervention typeIntervention) { this.typeIntervention = typeIntervention; }
+    public void setStatut(StatutIntervention s) { this.statut = s; }
 
     @Override
     public boolean equals(Object o) {
