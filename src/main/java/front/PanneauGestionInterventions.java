@@ -1,10 +1,13 @@
 package front;
 
+import back.*;
+
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.util.ArrayList;
 import java.util.List;
 
 public class PanneauGestionInterventions extends JPanel {
@@ -14,9 +17,12 @@ public class PanneauGestionInterventions extends JPanel {
     private JComboBox<String> comboType;
     private JTextField txtRecherche;
     private DefaultTableModel modeleTable;
+    private GestionGarage garage;
 
-    public PanneauGestionInterventions() {
+
+    public PanneauGestionInterventions(GestionGarage garage) {
         this.setLayout(new GridLayout(1, 2, 10, 0));
+        this.garage = garage;
 
         // --- GAUCHE : Schéma + Formulaire ---
         JPanel panelGauche = new JPanel(new BorderLayout());
@@ -77,25 +83,32 @@ public class PanneauGestionInterventions extends JPanel {
         btnValider.addActionListener(e -> {
             try {
                 String immat = txtImmat.getText();
-                List<String> pieces = schema2D.getPiecesCochees();
+                String typeSelectionne = (String) comboType.getSelectedItem(); // Ex: "Vidange"
+                float km = Float.parseFloat(txtKm.getText());
 
-                if (immat.isEmpty()) throw new Exception("Immatriculation manquante");
+                // On récupère les pièces cochées du schéma 2D
+                // Attention : Il faut transformer les noms de pièces (String) en objets Pieces du Back
+                List<String> nomsPieces = schema2D.getPiecesCochees();
+                List<Pieces> piecesReelles = new ArrayList<>();
 
-                // TENTATIVE D'ENVOI BDD
+                for(String nomPiece : nomsPieces) {
+                    // Il vous faudra une méthode dans GestionGarage pour trouver une pièce par son nom/ref
+                    // Ex: Pieces p = garage.getPieceParNom(nomPiece);
+                    // Pour l'instant, si vous n'avez pas cette méthode, le back risque de planter si la liste est vide ou incorrecte.
+                }
 
-                // Simulation d'échec car pas de BDD
-                throw new Exception("Erreur de connexion : Impossible de vérifier l'existence du véhicule en base de données.");
+                // APPEL BDD
+                // Le type ("Réparation", "Vidange") doit exister exactement avec ce nom en BDD (voir Main.java)
+                Intervention interv = garage.creerIntervention(immat, typeSelectionne, piecesReelles, km);
 
-                // (Code inatteignable tant que la BDD n'est pas là)
-                // JOptionPane.showMessageDialog(this, "Ajout réussi !");
-                // schema2D.reset();
-                // txtImmat.setText("");
+                if (interv != null) {
+                    JOptionPane.showMessageDialog(this, "Intervention créée ! Prix : " + interv.getPrix() + "€");
+                } else {
+                    throw new Exception("Echec de création (Véhicule introuvable ou Type incorrect)");
+                }
 
             } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this,
-                        "L'ajout a échoué.\nCause : " + ex.getMessage(),
-                        "Erreur",
-                        JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Erreur : " + ex.getMessage());
             }
         });
 

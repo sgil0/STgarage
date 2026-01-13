@@ -17,10 +17,6 @@ public class Pieces {
     @Enumerated(EnumType.STRING)
     private ZoneIntervention zone;
 
-    // TypeVehicule many to many
-    @ManyToMany(mappedBy = "pieces")
-    private Collection<TypeVehicule> typesVehicules;
-
     // TypeIntervention many to many
     @ManyToMany(mappedBy = "piecesUtilisees")
     private List<TypeIntervention> interventionsLiees;
@@ -28,12 +24,14 @@ public class Pieces {
     @ManyToMany(mappedBy = "piecesReelles")
     private List<Intervention> interventions;
 
+    public Pieces(){
+    }
+
     public Pieces(String ref, String nom, float prix, ZoneIntervention zone){
         this.ref = ref;
         this.nom = nom;
         this.prix = prix;
         this.zone = zone;
-        this.typesVehicules = new ArrayList<>();;
         this.interventionsLiees = new ArrayList<>();;
         this.interventions = new ArrayList<>();;
     }

@@ -27,14 +27,14 @@ public class Vehicule{
     private float kilometrage;
 
     @ManyToOne
-    @JoinColumn(name = "idProprietaire")
+    @JoinColumn(name = "id_proprietaire")
     private Client proprietaire;
 
     @OneToMany(mappedBy = "vehicule")
     private Collection<Intervention> listeInterventions;
 
     @ManyToOne
-    @JoinColumn(name = "idTypeVehicule")
+    @JoinColumn(name = "id_type_vehicule")
     private TypeVehicule typeVehicule;
 
     public Vehicule(String immatriculation, LocalDate miseCirc, float kilometrage, TypeVehicule typeVehicule, Client proprietaire) {
@@ -47,6 +47,7 @@ public class Vehicule{
         if (!immatClean.matches(FORMAT_SIV)) {
             throw new IllegalArgumentException("Format invalide. Attendu : AA-123-BB");
         }
+        this.kilometrage = kilometrage;
         this.miseCirc = miseCirc;
         this.immatriculation = immatClean;
         this.typeVehicule = typeVehicule;
@@ -85,6 +86,14 @@ public class Vehicule{
 
     public void setProprietaire(Client client) {
         this.proprietaire = client;
+    }
+
+    public TypeVehicule getTypeVehicule() {
+        return typeVehicule;
+    }
+
+    public String getImmatriculation() {
+        return immatriculation;
     }
 
     @Override

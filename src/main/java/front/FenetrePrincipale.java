@@ -1,11 +1,18 @@
 package front;
 
+import back.GestionGarage;
+
 import javax.swing.*;
 import java.awt.*;
 
 public class FenetrePrincipale extends JFrame {
 
+    private GestionGarage garage;
+
     public FenetrePrincipale() {
+        // 1. Démarrer la connexion BDD
+        this.garage = new GestionGarage();
+
         // Configuration de la fenêtre
         this.setTitle("Auto21 - Gestion Garage");
         this.setSize(1200, 800);
@@ -20,11 +27,20 @@ public class FenetrePrincipale extends JFrame {
         // 2. ZONE CENTRE : Les Onglets
         JTabbedPane onglets = new JTabbedPane();
 
-        // On ne passe plus "this" car il n'y a plus de listes partagées
-        onglets.addTab("Gestion Véhicules", new PanneauGestionVehicules());
-        onglets.addTab("Gestion Interventions", new PanneauGestionInterventions());
+
+        // 2. On passe 'garage' aux constructeurs qu'on vient de modifier
+        onglets.addTab("Gestion Véhicules", new PanneauGestionVehicules(this.garage));
+        onglets.addTab("Gestion Interventions", new PanneauGestionInterventions(this.garage));
 
         this.add(onglets, BorderLayout.CENTER);
+
+        // 3. Fermer proprement la connexion quand on ferme la fenêtre
+        this.addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosing(java.awt.event.WindowEvent windowEvent) {
+                garage.fermer();
+            }
+        });
     }
 
     public static void main(String[] args) {

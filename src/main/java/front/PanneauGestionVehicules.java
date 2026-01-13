@@ -1,5 +1,7 @@
 package front;
 
+import back.*;
+
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
@@ -11,11 +13,12 @@ public class PanneauGestionVehicules extends JPanel {
     private JTextField txtImmat, txtModele, txtKm;
     private JTextField txtRecherche;
     private DefaultTableModel modeleTable;
+    private GestionGarage garage;
 
-    public PanneauGestionVehicules() {
+    public PanneauGestionVehicules(GestionGarage garage) {
         this.setLayout(new GridLayout(1, 2, 10, 0));
         this.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-
+        this.garage = garage;
         // --- GAUCHE : Formulaire Ajout ---
         JPanel panelGauche = new JPanel(new GridBagLayout());
         panelGauche.setBorder(BorderFactory.createTitledBorder("Nouveau Véhicule"));
@@ -41,7 +44,7 @@ public class PanneauGestionVehicules extends JPanel {
 
         this.add(panelGauche);
 
-        // --- DROITE : Recherche + Tableau ---
+        // DROITE : Recherche + Tableau
         JPanel panelDroit = new JPanel(new BorderLayout(0, 10));
 
         JPanel pSearch = new JPanel(new FlowLayout(FlowLayout.LEFT));
@@ -50,7 +53,7 @@ public class PanneauGestionVehicules extends JPanel {
         pSearch.add(txtRecherche);
         panelDroit.add(pSearch, BorderLayout.NORTH);
 
-        String[] colonnes = {"Immat", "Modèle", "KM"};
+        String[] colonnes = {"Immat", "Marque", "Modèle", "KM"};
         modeleTable = new DefaultTableModel(colonnes, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -65,35 +68,44 @@ public class PanneauGestionVehicules extends JPanel {
         // --- ACTIONS ---
         btnAjouter.addActionListener(e -> {
             try {
-                // 1. Récupération des données
+                // 1. Récupération et nettoyage des données
                 String immat = txtImmat.getText().trim().toUpperCase();
-                String modele = txtModele.getText();
-                String km = txtKm.getText();
+                String modele = txtModele.getText().trim();
+                String kmText = txtKm.getText().trim();
 
-                // Validation de base
-                if (immat.isEmpty()) throw new Exception("Le champ Immatriculation est vide");
-                if (modele.isEmpty()) throw new Exception("Le champ Modèle est vide");
+                // 2. Validations de base
+                if (immat.isEmpty()) throw new Exception("L'immatriculation est obligatoire.");
+                if (modele.isEmpty()) throw new Exception("Le modèle est obligatoire.");
+                if (kmText.isEmpty()) throw new Exception("Le kilométrage est obligatoire.");
 
-                // 2. TENTATIVE D'ENVOI AU BACKEND (BDD)
-                // C'est ici que tu mettras ta requête JPA plus tard.
-                // Pour l'instant, comme il n'y a pas de lien, on lève une erreur volontaire.
-
-                boolean bddConnectee = false; // Variable temporaire pour le TP
-                if (!bddConnectee) {
-                    throw new Exception("Aucune connexion à la base de données n'est active.\nImpossible de vérifier les doublons ou d'enregistrer.");
+                // Conversion du kilométrage (risque d'erreur si ce n'est pas un nombre)
+                float km;
+                try {
+                    km = Float.parseFloat(kmText);
+                } catch (NumberFormatException nfe) {
+                    throw new Exception("Le kilométrage doit être un nombre valide (ex: 50000).");
                 }
 
-                // --- SI L'AJOUT BDD REUSSIT (Code futur) ---
-                JOptionPane.showMessageDialog(this, "Ajout réussi !");
+                // 3. Création de l'objet Véhicule
+                // (On met null pour le client et le type pour l'instant)
+                Vehicule v = new Vehicule(immat, java.time.LocalDate.now(), (int) km, null); // Note: casting en int car votre constructeur prend un int actuellement
 
-                // Reset champs
-                txtImmat.setText(""); txtModele.setText(""); txtKm.setText("");
+                // 4. ENVOI AU BACKEND
+                garage.creerVehicule(v);
+
+                // 5. Succès
+                JOptionPane.showMessageDialog(this, "Véhicule " + immat + " ajouté avec succès !");
+
+                // Reset des champs pour la prochaine saisie
+                txtImmat.setText("");
+                txtModele.setText("");
+                txtKm.setText("");
 
             } catch (Exception ex) {
-                // 3. GESTION DES ERREURS (C'est ici qu'on arrive maintenant)
+                // Affichage propre de l'erreur
                 JOptionPane.showMessageDialog(this,
-                        "L'ajout a échoué.\nCause : " + ex.getMessage(),
-                        "Erreur",
+                        "Erreur : " + ex.getMessage(),
+                        "Impossible d'ajouter",
                         JOptionPane.ERROR_MESSAGE);
             }
         });
@@ -101,7 +113,29 @@ public class PanneauGestionVehicules extends JPanel {
         txtRecherche.addKeyListener(new KeyAdapter() {
             @Override
             public void keyReleased(KeyEvent e) {
-                // TODO: Recherche BDD
+                String texte = txtRecherche.getText().trim();
+                java.util.List<back.Vehicule> resultats = garage.rechercherVehicules(texte);
+
+                // 1. On vide le tableau (très important !)
+                modeleTable.setRowCount(0);
+
+                // 2. On remplit s'il y a des résultats
+                if (!resultats.isEmpty()) {
+                    for (back.Vehicule v : resultats) {
+                        // Récupération sécurisée du modèle
+                        String modeleAffiche = "Inconnu";
+                        if (v.getTypeVehicule() != null) {
+                            modeleAffiche = v.getTypeVehicule().getMarque() + " " + v.getTypeVehicule().getModele();
+                        }
+
+                        modeleTable.addRow(new Object[]{
+                                v.getImmatriculation(),
+                                v.getTypeVehicule().getMarque(),
+                                v.getTypeVehicule().getModele(),
+                                v.getKilometrage()
+                        });
+                    }
+                }
             }
         });
     }

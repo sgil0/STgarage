@@ -22,12 +22,12 @@ public class Intervention {
 
     // Vehicule many to one
     @ManyToOne
-    @JoinColumn(name = "immatVehicule")
+    @JoinColumn(name = "immat_vehicule")
     private Vehicule vehicule;
 
     // TypeIntervention Many to one
     @ManyToOne
-    @JoinColumn(name = "idTypeIntervention")
+    @JoinColumn(name = "id_type_intervention")
     private TypeIntervention typeIntervention;
 
     // Cette liste va stocker les pièces cochées sur le schéma 2D.
@@ -56,6 +56,9 @@ public class Intervention {
 
         // Calcul du prix initial
         calculerEtMettreAJourPrix();
+
+        // MAJ kilométrage vehicule
+        this.vehicule.setKilometrage(this.kilometrage);
     }
 
     public Intervention() {
@@ -77,6 +80,9 @@ public class Intervention {
 
         // Calcul du prix basé sur CES pièces là
         calculerEtMettreAJourPrix();
+
+        // MAJ kilométrage vehicule
+        this.vehicule.setKilometrage(this.kilometrage);
     }
 
     /**
@@ -97,7 +103,6 @@ public class Intervention {
                 coutPieces += p.getPrix();
             }
         }
-
         this.prix = coutMO + coutPieces;
     }
 

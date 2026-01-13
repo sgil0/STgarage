@@ -10,6 +10,7 @@ import java.util.Objects;
 
 
 @Entity
+@Table(name = "type_vehicule")
 public class TypeVehicule {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -28,14 +29,28 @@ public class TypeVehicule {
     @OneToMany(mappedBy = "typeVehicule")
     private Collection<Vehicule> vehicules;
 
-    // Pièces many to many
-    @ManyToMany
-    @JoinTable(
-            name = "lienTypeVehiculeEtPieces", // Nom de la table intermédiaire
-            joinColumns = @JoinColumn(name = "immatTypeVehicule"),
-            inverseJoinColumns = @JoinColumn(name = "refPiece")
-    )
-    private List<Pieces> pieces;
+
+    // Constructeur vide (obligatoire pour JPA)
+    public TypeVehicule() {}
+
+    // Constructeur complet
+    public TypeVehicule(String marque, String modele, Energie energie, BoiteVitesse boiteVitesse, int nbPlaces, int nbPortes, int puissance) {
+        this.marque = marque;
+        this.modele = modele;
+        this.energie = energie;
+        this.boiteVitesse = boiteVitesse;
+        this.nbPlaces = nbPlaces;
+        this.nbPortes = nbPortes;
+        this.puissance = puissance;
+    }
+
+    public String getModele() {
+        return modele;
+    }
+
+    public String getMarque() {
+        return marque;
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -60,9 +75,9 @@ public class TypeVehicule {
                 ", nbPortes=" + nbPortes +
                 ", puissance=" + puissance +
                 ", immatsVehicules=" + vehicules +
-                ", pieces=" + pieces +
                 '}';
     }
+
 }
 
 

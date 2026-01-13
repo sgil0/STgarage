@@ -37,6 +37,12 @@ public class GestionGarage {
         em.getTransaction().commit();
     }
 
+    public void creerVehicule(Vehicule vehicule){
+        em.getTransaction().begin();
+        em.persist(vehicule);
+        em.getTransaction().commit();
+    }
+
     public void creerClientEtVehicule(Client c, Vehicule v) {
         em.getTransaction().begin();
         em.persist(c);
@@ -76,8 +82,34 @@ public class GestionGarage {
         }
     }
 
+    // Recherche partielle (LIKE)
+    public List<Vehicule> rechercherVehicules(String recherche) {
+        // Si la recherche est vide, on renvoie tout (ou rien, selon votre choix).
+        // Ici on renvoie tout pour réinitialiser le tableau.
+        if (recherche == null || recherche.isEmpty()) {
+            return em.createQuery("SELECT v FROM Vehicule v", Vehicule.class).getResultList();
+        }
+
+        TypedQuery<Vehicule> q = em.createQuery(
+                "SELECT v FROM Vehicule v WHERE v.immatriculation LIKE :recherche",
+                Vehicule.class
+        );
+        // Les % permettent de chercher "n'importe où" dans la chaîne (contient)
+        q.setParameter("recherche", "%" + recherche + "%");
+
+        return q.getResultList();
+    }
+
     // Pour vérifier dans le test
     public Pieces getPiece(String ref) {
         return em.find(Pieces.class, ref);
+    }
+
+    public void creerTypeVehicule(TypeVehicule type) {
+        // Vérifie si un type similaire existe déjà (optionnel mais conseillé)
+        // Ici on fait simple pour le TP : on persiste directement
+        em.getTransaction().begin();
+        em.persist(type);
+        em.getTransaction().commit();
     }
 }
