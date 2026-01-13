@@ -41,7 +41,11 @@ public class PanneauGestionInterventions extends JPanel {
         txtImmat = new JTextField(10); g.gridx=1; formPanel.add(txtImmat, g);
 
         g.gridx=0; g.gridy=1; formPanel.add(new JLabel("Type :"), g);
-        comboType = new JComboBox<>(new String[]{"Réparation", "Entretien", "Vidange"});
+
+        // On récupère la liste réelle depuis la BDD
+        List<String> typesDispo = garage.getNomsTypesIntervention();
+        comboType = new JComboBox<>(typesDispo.toArray(new String[0]));
+
         g.gridx=1; formPanel.add(comboType, g);
 
         g.gridx=0; g.gridy=2; formPanel.add(new JLabel("Date :"), g);

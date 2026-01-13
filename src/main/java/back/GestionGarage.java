@@ -21,6 +21,11 @@ public class GestionGarage {
     }
 
     // --- 1. OUTILS DE TEST (Pour remplir la base) ---
+    public List<Pieces> getPiecesParZone(ZoneIntervention zone) {
+        return em.createQuery("SELECT p FROM Pieces p WHERE p.zone = :zone", Pieces.class)
+                .setParameter("zone", zone)
+                .getResultList();
+    }
 
     public void creerPiece(String ref, String nom, float prix, ZoneIntervention zone) {
         if (em.find(Pieces.class, ref) != null) return; // Déjà existante
@@ -111,5 +116,9 @@ public class GestionGarage {
         em.getTransaction().begin();
         em.persist(type);
         em.getTransaction().commit();
+    }
+
+    public List<String> getNomsTypesIntervention() {
+        return em.createQuery("SELECT t.nom FROM TypeIntervention t", String.class).getResultList();
     }
 }
