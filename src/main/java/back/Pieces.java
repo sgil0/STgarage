@@ -12,7 +12,6 @@ public class Pieces {
     @Id
     private String ref;
     private String nom;
-    private String constructeur;
     private float prix;
     @Enumerated(EnumType.STRING)
     private ZoneIntervention zone;
@@ -50,5 +49,9 @@ public class Pieces {
 
     public List<Intervention> getInterventions() {
         return interventions;
+    }
+
+    public String getNom() {
+        return nom;
     }
 }

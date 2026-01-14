@@ -1,5 +1,9 @@
 package front;
 
+import back.GestionGarage;
+import back.Pieces;
+import back.EnumType.ZoneIntervention;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
@@ -9,10 +13,14 @@ import java.util.List;
 
 public class PanneauSchema2D extends JPanel {
 
-    private List<String> piecesCochees = new ArrayList<>();
+    // On stocke maintenant des OBJETS Pieces, pas juste des noms
+    private List<Pieces> piecesSelectionnees = new ArrayList<>();
     private JLabel infoLabel;
+    private GestionGarage garage; // Lien vers le Back
 
-    public PanneauSchema2D() {
+    // Le constructeur prend le garage en paramètre
+    public PanneauSchema2D(GestionGarage garage) {
+        this.garage = garage; // On récupère le lien
         this.setLayout(new BorderLayout());
         this.setBackground(Color.WHITE);
         this.setBorder(BorderFactory.createLineBorder(Color.BLACK));
@@ -79,46 +87,75 @@ public class PanneauSchema2D extends JPanel {
         int cy = getHeight() / 2;
 
         // Logique de détection des clics (Zones approximatives)
+        // On appelle le Back pour avoir les vraies pièces !
 
         // 1. Zone Moteur (Centre Haut)
         if (x > cx - 40 && x < cx + 40 && y > cy - 70 && y < cy - 10) {
-            ouvrirPopup("Moteur", new String[]{"Bougies", "Vidange Huile", "Filtre à Air", "Courroie Distribution", "Alternateur"});
+            List<Pieces> piecesDispo = garage.getPiecesParZone(ZoneIntervention.BLOC_MOTEUR);
+            ouvrirPopup("Moteur", piecesDispo);
         }
         // 2. Zone Avant (Haut)
         else if (y < cy - 80) {
-            ouvrirPopup("Train Avant", new String[]{"Pneus AV", "Plaquettes AV", "Disques AV", "Amortisseurs AV", "Direction"});
+            List<Pieces> piecesDispo = garage.getPiecesParZone(ZoneIntervention.TRAIN_AVANT);
+            ouvrirPopup("Train Avant", piecesDispo);
         }
         // 3. Zone Arrière (Bas)
         else if (y > cy + 50) {
-            ouvrirPopup("Train Arrière", new String[]{"Pneus AR", "Plaquettes AR", "Disques AR", "Pot d'échappement"});
+            List<Pieces> piecesDispo = garage.getPiecesParZone(ZoneIntervention.TRAIN_ARRIERE);
+            ouvrirPopup("Train Arrière", piecesDispo);
         }
     }
 
-    private void ouvrirPopup(String zone, String[] piecesDispo) {
+    private void ouvrirPopup(String titreZone, List<Pieces> piecesDispo) {
+        if (piecesDispo.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Aucune pièce trouvée en stock pour : " + titreZone);
+            return;
+        }
+
         JPanel p = new JPanel(new GridLayout(0, 1));
         List<JCheckBox> checkboxes = new ArrayList<>();
 
-        for (String s : piecesDispo) {
-            JCheckBox box = new JCheckBox(s);
-            if (piecesCochees.contains(s)) box.setSelected(true);
+        for (Pieces piece : piecesDispo) {
+            // On affiche le Nom de la pièce et son prix
+            JCheckBox box = new JCheckBox(piece.getNom() + " (" + piece.getPrix() + "€)");
+
+            // On vérifie si cette pièce précise est déjà sélectionnée
+            if (piecesSelectionnees.contains(piece)) {
+                box.setSelected(true);
+            }
+
+            // On stocke l'objet Piece DANS le composant pour le retrouver facilement plus tard
+            box.putClientProperty("pieceObj", piece);
+
             checkboxes.add(box);
             p.add(box);
         }
 
-        int rep = JOptionPane.showConfirmDialog(this, p, "Pièces : " + zone, JOptionPane.OK_CANCEL_OPTION);
+        int rep = JOptionPane.showConfirmDialog(this, p, "Pièces : " + titreZone, JOptionPane.OK_CANCEL_OPTION);
 
         if (rep == JOptionPane.OK_OPTION) {
             for (JCheckBox box : checkboxes) {
+                Pieces laPiece = (Pieces) box.getClientProperty("pieceObj");
                 if (box.isSelected()) {
-                    if (!piecesCochees.contains(box.getText())) piecesCochees.add(box.getText());
+                    if (!piecesSelectionnees.contains(laPiece)) {
+                        piecesSelectionnees.add(laPiece);
+                    }
                 } else {
-                    piecesCochees.remove(box.getText());
+                    piecesSelectionnees.remove(laPiece);
                 }
             }
-            infoLabel.setText(piecesCochees.size() + " pièces sélectionnées");
+            infoLabel.setText(piecesSelectionnees.size() + " pièces sélectionnées");
         }
     }
 
-    public List<String> getPiecesCochees() { return piecesCochees; }
-    public void reset() { piecesCochees.clear(); infoLabel.setText("Sélectionnez des pièces..."); }
+    // Nouvelle méthode qui retourne directement les objets Pieces pour le formulaire principal
+    public List<Pieces> getPiecesSelectionnees() {
+        return piecesSelectionnees;
+    }
+
+    public void reset() {
+        piecesSelectionnees.clear();
+        infoLabel.setText("Sélectionnez des pièces...");
+    }
+
 }

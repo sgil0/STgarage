@@ -27,7 +27,7 @@ public class PanneauGestionInterventions extends JPanel {
         // --- GAUCHE : Schéma + Formulaire ---
         JPanel panelGauche = new JPanel(new BorderLayout());
 
-        schema2D = new PanneauSchema2D();
+        schema2D = new PanneauSchema2D(garage);
         schema2D.setPreferredSize(new Dimension(0, 350));
         panelGauche.add(schema2D, BorderLayout.CENTER);
 
@@ -91,15 +91,7 @@ public class PanneauGestionInterventions extends JPanel {
                 float km = Float.parseFloat(txtKm.getText());
 
                 // On récupère les pièces cochées du schéma 2D
-                // Attention : Il faut transformer les noms de pièces (String) en objets Pieces du Back
-                List<String> nomsPieces = schema2D.getPiecesCochees();
-                List<Pieces> piecesReelles = new ArrayList<>();
-
-                for(String nomPiece : nomsPieces) {
-                    // Il vous faudra une méthode dans GestionGarage pour trouver une pièce par son nom/ref
-                    // Ex: Pieces p = garage.getPieceParNom(nomPiece);
-                    // Pour l'instant, si vous n'avez pas cette méthode, le back risque de planter si la liste est vide ou incorrecte.
-                }
+                List<Pieces> piecesReelles = schema2D.getPiecesSelectionnees();
 
                 // APPEL BDD
                 // Le type ("Réparation", "Vidange") doit exister exactement avec ce nom en BDD (voir Main.java)
