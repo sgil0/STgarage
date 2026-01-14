@@ -1,27 +1,24 @@
 package back;
 
-import jakarta.persistence.*;
-
+import back.EnumType.ZoneIntervention;
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity;
 import java.util.List;
 
 @Entity
 @DiscriminatorValue("REPARATION")
-public class Reparation extends TypeIntervention{
-
-    public Reparation(String nom, int duree, List<Pieces> pieces) {
-        super(); // Initialise les listes vides du parent
-        this.setNom(nom);
-        this.setDuree(duree);
-        this.setPiecesUtilisees(pieces);
-
-        // Règles métier de l'Entretien
-        this.setTauxHoraire(120);
-
-        // Calcul automatique du prix
-        this.calculerPrixForfait();
-    }
+public class Reparation extends TypeIntervention {
 
     public Reparation() {
+        super();
+    }
 
+    public Reparation(String nom, int duree, List<Pieces> piecesUtilisees, ZoneIntervention zone) {
+        // 1. Le super constructeur calcule avec le taux de 90€ (par défaut)
+        super(nom, duree, piecesUtilisees, zone);
+
+        // 2. CORRECTION : On applique le taux "Réparation" et on recalcule
+        this.setTauxHoraire(120);
+        this.calculerPrixForfait();
     }
 }

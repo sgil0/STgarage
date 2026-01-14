@@ -2,7 +2,6 @@ package back;
 
 import jakarta.persistence.*;
 
-import java.sql.Date;
 import java.time.LocalDate;
 import java.time.Month;
 import java.util.ArrayList;

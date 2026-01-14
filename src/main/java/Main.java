@@ -2,6 +2,8 @@ import back.*;
 import back.EnumType.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.time.LocalDate;
 
@@ -10,82 +12,80 @@ public class Main {
         System.out.println("--- DÉMARRAGE DU GARAGE ---");
         GestionGarage garage = new GestionGarage();
 
-        // CRÉATION DU CATALOGUE (Pièces & Types)
-        System.out.println("\n--- Initialisation Catalogue ---");
-
-        // On crée quelques pièces
+        System.out.println("\n--- 1. Initialisation des Pièces ---");
+        // MOTEUR
         garage.creerPiece("HUILE-5W30", "Bidon Huile 5L", 50.0f, ZoneIntervention.BLOC_MOTEUR);
         garage.creerPiece("FILTRE-H", "Filtre à Huile", 15.0f, ZoneIntervention.BLOC_MOTEUR);
-        garage.creerPiece("TURBO", "Turbo", 780.0f, ZoneIntervention.BLOC_MOTEUR);
-        garage.creerPiece("COURROIE_DISTRIBUTION", "Courroie de distribution", 280.0f, ZoneIntervention.BLOC_MOTEUR);
+        garage.creerPiece("COURROIE-DIST", "Courroie Distribution", 280.0f, ZoneIntervention.BLOC_MOTEUR);
+        garage.creerPiece("TURBO", "Turbo Garett", 780.0f, ZoneIntervention.BLOC_MOTEUR);
 
-        garage.creerPiece("PLAQUE-AV", "Plaquettes Avant", 60.0f, ZoneIntervention.TRAIN_AVANT);
-        garage.creerPiece("DISQUE-AV", "Disques Avant", 120.0f, ZoneIntervention.TRAIN_AVANT);
-        garage.creerPiece("PNEUS-AV", "Pneus Avant", 215.0f, ZoneIntervention.TRAIN_AVANT);
-        
+        // TRAIN AVANT
+        garage.creerPiece("PLAQUE-AV", "Jeu Plaquettes AV", 60.0f, ZoneIntervention.TRAIN_AVANT);
+        garage.creerPiece("DISQUE-AV", "Jeu Disques AV", 120.0f, ZoneIntervention.TRAIN_AVANT);
+        garage.creerPiece("PNEU-AV", "Pneu Michelin 17p", 110.0f, ZoneIntervention.TRAIN_AVANT);
 
-        garage.creerPiece("PLAQUE-AR", "Plaquettes Arrière", 45.0f, ZoneIntervention.TRAIN_ARRIERE);
-        garage.creerPiece("DISQUE-AR", "Disques Arrière", 100.0f, ZoneIntervention.TRAIN_ARRIERE);
-        garage.creerPiece("PNEUS-AR", "Pneus Arrière", 215.0f, ZoneIntervention.TRAIN_ARRIERE);
-        
+        // TRAIN ARRIERE
+        garage.creerPiece("PLAQUE-AR", "Jeu Plaquettes AR", 45.0f, ZoneIntervention.TRAIN_ARRIERE);
+        garage.creerPiece("DISQUE-AR", "Jeu Disques AR", 100.0f, ZoneIntervention.TRAIN_ARRIERE);
+        garage.creerPiece("AMORTISSEUR-AR", "Amortisseur Arrière", 85.0f, ZoneIntervention.TRAIN_ARRIERE);
+        garage.creerPiece("PNEU-AR", "Pneu Michelin 19p", 140.0f, ZoneIntervention.TRAIN_ARRIERE);
 
-        // On crée un Type d'intervention : "Vidange Standard"
-        List<Pieces> kitVidange = new ArrayList<>();
-        kitVidange.add(garage.getPiece("HUILE-5W30"));
-        kitVidange.add(garage.getPiece("FILTRE-H"));
-        Entretien vidange = new Entretien("Vidange Standard", 60, kitVidange, 15000);
+
+        System.out.println("\n--- 2. Création des Forfaits (Types Intervention) ---");
+
+        Entretien entretienBatterie = new Entretien("Diagnostic Santé Batterie (SOH)", 240, Collections.emptyList(), 30000, ZoneIntervention.BLOC_MOTEUR);
+
+        // On applique un tarif spécial "Expert Electrique" pour atteindre le prix sans pièces
+        entretienBatterie.setTauxHoraire(200);
+        entretienBatterie.calculerPrixForfait(); // Important de recalculer après changement du taux
+
+        entretienBatterie.ajouterEnergieCompatible(Energie.ELECTRIQUE);
+        entretienBatterie.ajouterEnergieCompatible(Energie.HYBRID); // Les hybrides ont aussi une batterie HT
+
+        garage.creerTypeIntervention(entretienBatterie);
+        // --- ZONE MOTEUR ---
+        List<Pieces> kitVidange = Arrays.asList(garage.getPiece("HUILE-5W30"), garage.getPiece("FILTRE-H"));
+        Entretien vidange = new Entretien("Vidange Complète", 60, kitVidange, 20000, ZoneIntervention.BLOC_MOTEUR);
+        vidange.ajouterEnergieCompatible(Energie.ESSENCE);
+        vidange.ajouterEnergieCompatible(Energie.DIESEL);
+        vidange.ajouterEnergieCompatible(Energie.HYBRID);
         garage.creerTypeIntervention(vidange);
 
-        // On crée un Type d'intervention : "Changement courroie de distribution"
-        List<Pieces> kitCourroie = new ArrayList<>();
-        kitCourroie.add(garage.getPiece("COURROIE_DISTRIBUTION"));
-        Entretien courroie_distr = new Entretien("Changement courroie de distribution", 120, kitCourroie, 120000);
-        garage.creerTypeIntervention(courroie_distr);
+        List<Pieces> kitCourroie = Collections.singletonList(garage.getPiece("COURROIE-DIST"));
+        Entretien courroie = new Entretien("Kit Distribution", 180, kitCourroie, 120000, ZoneIntervention.BLOC_MOTEUR);
+        courroie.ajouterEnergieCompatible(Energie.ESSENCE);
+        courroie.ajouterEnergieCompatible(Energie.DIESEL);
+        courroie.ajouterEnergieCompatible(Energie.HYBRID);
+        garage.creerTypeIntervention(courroie);
 
-        // On crée un Type d'intervention : "Changement turbo"
-        List<Pieces> kitTurbo = new ArrayList<>();
-        kitTurbo.add(garage.getPiece("TURBO"));
-        Reparation cgt_turbo = new Reparation("Changement turbo", 150, kitTurbo);
-        garage.creerTypeIntervention(cgt_turbo);
+        List<Pieces> kitTurbo = Collections.singletonList(garage.getPiece("TURBO"));
+        Reparation turbo = new Reparation("Remplacement Turbo", 240, kitTurbo, ZoneIntervention.BLOC_MOTEUR);
+        turbo.ajouterEnergieCompatible(Energie.ESSENCE);
+        turbo.ajouterEnergieCompatible(Energie.DIESEL);
+        vidange.ajouterEnergieCompatible(Energie.HYBRID);
+        garage.creerTypeIntervention(turbo);
 
-        // On crée un Type d'intervention : "Crevaison pneus avants"
-        List<Pieces> kitCrevaisonAV = new ArrayList<>();
-        kitCrevaisonAV.add(garage.getPiece("PNEUS-AV"));
-        Reparation crevaison_AV = new Reparation("Crevaison pneus avants", 30, kitCrevaisonAV);
+        // --- ZONE AVANT ---
+        List<Pieces> kitFreinsAV = Arrays.asList(garage.getPiece("PLAQUE-AV"), garage.getPiece("DISQUE-AV"));
+        Reparation freinsAV = new Reparation("Freins Avant (Disques+Plaquettes)", 90, kitFreinsAV, ZoneIntervention.TRAIN_AVANT);
+        garage.creerTypeIntervention(freinsAV);
 
-        garage.creerTypeIntervention(crevaison_AV);
+        List<Pieces> kitPneusAV = Arrays.asList(garage.getPiece("PNEU-AV"), garage.getPiece("PNEU-AV"));
+        Reparation pneusAV = new Reparation("Changement 2 Pneus AV", 45, kitPneusAV, ZoneIntervention.TRAIN_AVANT);
+        garage.creerTypeIntervention(pneusAV);
 
-        // On crée un Type d'intervention : "Crevaison pneus arrière"
-        List<Pieces> kitCrevaisonAR = new ArrayList<>();
-        kitCrevaisonAR.add(garage.getPiece("PNEUS-AR"));
-        Reparation crevaison_AR = new Reparation("Crevaison pneus arrières", 30, kitCrevaisonAR);
+        // --- ZONE ARRIERE ---
+        List<Pieces> kitAmorto = Arrays.asList(garage.getPiece("AMORTISSEUR-AR"), garage.getPiece("AMORTISSEUR-AR"));
+        Reparation amortisseurs = new Reparation("Amortisseurs Arrière", 120, kitAmorto, ZoneIntervention.TRAIN_ARRIERE);
+        garage.creerTypeIntervention(amortisseurs);
 
-        garage.creerTypeIntervention(crevaison_AR);
+        List<Pieces> kitFreinsAR = Arrays.asList(garage.getPiece("PLAQUE-AR"), garage.getPiece("DISQUE-AR"));
+        Reparation freinsAR = new Reparation("Freins Arrière (Disques+Plaquettes)", 90, kitFreinsAR, ZoneIntervention.TRAIN_ARRIERE);
+        garage.creerTypeIntervention(freinsAR);
 
-        // On crée un Type d'intervention : "Changement pneus"
-        List<Pieces> kitRemplacementPneus = new ArrayList<>();
-        kitRemplacementPneus.add(garage.getPiece("PNEUS-AV"));
-        kitRemplacementPneus.add(garage.getPiece("PNEUS-AR"));
-        Entretien remplacement_pneus = new Entretien("Remplacement pneus", 30, kitRemplacementPneus, 20000);
-        remplacement_pneus.setNom("Remplacement pneus");
-        remplacement_pneus.setDuree(30);
-
-        garage.creerTypeIntervention(remplacement_pneus);
-
-
-        List<Pieces> kitFreinsAV = new ArrayList<>();
-        kitFreinsAV.add(garage.getPiece("PLAQUE-AV"));
-        kitFreinsAV.add(garage.getPiece("DISQUE-AV"));
-        // On crée le type "Réparation" (Taux horaire plus cher, défini dans la classe Reparation)
-        Reparation repFreinsAV = new Reparation("Remplacement Freins AV", 90, kitFreinsAV);
-        garage.creerTypeIntervention(repFreinsAV);
-
-        List<Pieces> kitFreinsAR = new ArrayList<>();
-        kitFreinsAR.add(garage.getPiece("PLAQUE-AR"));
-        kitFreinsAR.add(garage.getPiece("DISQUE-AR"));
-        // On crée le type "Réparation" (Taux horaire plus cher, défini dans la classe Reparation)
-        Reparation repFreinsAR = new Reparation("Remplacement Freins AR", 90, kitFreinsAR);
-        garage.creerTypeIntervention(repFreinsAR);
+        List<Pieces> kitPneusAR = Arrays.asList(garage.getPiece("PNEU-AR"), garage.getPiece("PNEU-AR"));
+        Reparation pneusAR = new Reparation("Changement 2 Pneus AR", 45, kitPneusAR, ZoneIntervention.TRAIN_ARRIERE);
+        garage.creerTypeIntervention(pneusAR);
 
         // CRÉATION TYPEVEHICULE
         TypeVehicule clio = new TypeVehicule("Renault", "Clio V", Energie.ESSENCE, BoiteVitesse.MANUELLE, 5, 5, 90);
@@ -158,27 +158,44 @@ public class Main {
         Vehicule v10 = new Vehicule("KD-741-FG", LocalDate.of(2023, 5, 25), 8000, zoe, null);
         garage.creerClientEtVehicule(c10, v10);
 
-        // AJOUT D'INTERVENTIONS SUR LES VÉHICULES
-        System.out.println("\n--- Ajout d'Interventions Historiques ---");
+        System.out.println("\n--- 5. Peuplement de la BDD (Interventions Réalistes) ---");
 
-        garage.creerIntervention("CD-634-BH", "Vidange Standard", kitVidange, 42500);
+        // 1. La Clio de Martin (v1) : Révision classique des 40.000 km
+        // Intervention combinée : Vidange + Filtres (Forfait Vidange) + Changement Pneus Avant
+        garage.creerIntervention("CD-634-BH", Arrays.asList(vidange, pneusAV), 42500);
 
-        garage.creerIntervention("TC-654-ST", "Remplacement Freins AV", kitFreinsAV, 86000);
+        // 2. La Zoe de Sophie (v2 - Electrique) : Entretien des trains roulants
+        // IMPORTANT : Pas de vidange possible (bloqué par ton code). On change juste les plaquettes.
+        garage.creerIntervention("DK-987-HJ", Arrays.asList(freinsAV), 16000);
 
-        garage.creerIntervention("YC-321-UV", "Vidange Standard", kitVidange, 61000);
+        // 3. La Tesla de Luc (v3 - Electrique) : Problème de pneu
+        // Une simple réparation de pneu (ou changement)
+        garage.creerIntervention("BE-456-LK", Arrays.asList(pneusAR), 6000);
 
-        garage.creerIntervention("BY-147-VY", "Remplacement Freins AR", kitFreinsAR, 112000);
+        // 4. Le 3008 de Marie (v4 - SUV) : Grosse maintenance des 60.000 km
+        // Vidange + Disques et Plaquettes à l'avant + Pneus arrière
+        garage.creerIntervention("YC-321-UV", Arrays.asList(vidange, freinsAV, pneusAV), 61200);
 
-        garage.creerIntervention("KE-258-XP", "Vidange Standard", kitVidange, 31000);
+        // 5. La Mustang de Michel (v5 - Sport) : Casse mécanique !
+        // Le turbo a lâché (Reparation) + on fait la vidange en même temps
+        garage.creerIntervention("TC-654-ST", Arrays.asList(turbo, vidange), 86000);
 
-        // 6. Une Vidange + Freins (Sur Mesure) sur la Yaris d'Isabelle (GM-789-HX)
-        // On crée une liste spéciale combinant Vidange + Plaquettes seulement
-        List<Pieces> kitComplet = new ArrayList<>(kitVidange);
-        kitComplet.add(garage.getPiece("PLAQUE-AV"));
+        // 6. La Yaris Hybride d'Isabelle (v6) : Entretien annuel
+        // Hybride = Moteur thermique = Vidange autorisée
+        garage.creerIntervention("GM-789-HX", Arrays.asList(vidange), 22500);
 
-        garage.creerIntervention("GM-789-HX", "Vidange Standard", kitComplet, 23000);
+        // 7. La vieille Clio de Pierre (v7 - 110.000 km) : Kit Distribution
+        // C'est l'entretien le plus critique et le plus cher
+        garage.creerIntervention("BY-147-VY", Arrays.asList(courroie, vidange), 110500);
 
-        System.out.println("✅ Interventions ajoutées avec succès.");
+        // 8. La Mustang d'Alain (v9) : Changement des trains de pneus (Voiture sport)
+        // Changement Pneus Avant ET Arrière
+        garage.creerIntervention("ZP-369-TQ", Arrays.asList(pneusAV, pneusAR), 56000);
+
+        // 9. La Tesla de Luc (v3) : Les pneus c'est fait, maintenant le gros entretien des 30.000
+        garage.creerIntervention("BE-456-LK", Arrays.asList(entretienBatterie), 30500);
+
+        System.out.println("✅ Ajout des interventions terminé.");
 
         garage.fermer();
         System.out.println("\n--- FIN Création BDD ---");

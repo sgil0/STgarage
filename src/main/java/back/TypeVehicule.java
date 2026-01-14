@@ -52,6 +52,10 @@ public class TypeVehicule {
         return marque;
     }
 
+    public Energie getEnergie() {
+        return energie;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (!(o instanceof TypeVehicule that)) return false;

@@ -1,7 +1,6 @@
 package front;
 
 import back.GestionGarage;
-
 import javax.swing.*;
 import java.awt.*;
 
@@ -10,31 +9,41 @@ public class FenetrePrincipale extends JFrame {
     private GestionGarage garage;
 
     public FenetrePrincipale() {
-        // 1. Démarrer la connexion BDD
         this.garage = new GestionGarage();
 
-        // Configuration de la fenêtre
         this.setTitle("Auto21 - Gestion Garage");
-        this.setSize(1200, 800);
+        this.setSize(1300, 850);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        this.setLocationRelativeTo(null); // Centrer
+        this.setLocationRelativeTo(null);
 
         this.setLayout(new BorderLayout());
 
-        // 1. ZONE GAUCHE : Urgences (Toujours visible)
-        this.add(new PanneauUrgences(), BorderLayout.WEST);
+        // Création des panneaux
+        PanneauUrgences panneauUrgences = new PanneauUrgences(this.garage);
+        PanneauGestionVehicules panneauVehicules = new PanneauGestionVehicules(this.garage);
 
-        // 2. ZONE CENTRE : Les Onglets
+        // ATTENTION : On utilise le nouveau panneau intelligent
+        PanneauGestionInterventions panneauInterventions = new PanneauGestionInterventions(this.garage);
+
+        // --- CÂBLAGE MAGIQUE ---
+
+        // Quand on clique sur un véhicule :
+        panneauVehicules.ajouterEcouteurSelection(immat -> {
+            // 1. On met à jour la sidebar Urgences
+            panneauUrgences.mettreAJour(immat);
+
+            // 2. On charge automatiquement le véhicule dans l'onglet Interventions
+            panneauInterventions.chargerVehicule(immat);
+        });
+
+        this.add(panneauUrgences, BorderLayout.WEST);
+
         JTabbedPane onglets = new JTabbedPane();
-
-
-        // 2. On passe 'garage' aux constructeurs qu'on vient de modifier
-        onglets.addTab("Gestion Véhicules", new PanneauGestionVehicules(this.garage));
-        onglets.addTab("Gestion Interventions", new PanneauGestionInterventions(this.garage));
+        onglets.addTab("Gestion Véhicules", panneauVehicules);
+        onglets.addTab("Gestion Interventions", panneauInterventions);
 
         this.add(onglets, BorderLayout.CENTER);
 
-        // 3. Fermer proprement la connexion quand on ferme la fenêtre
         this.addWindowListener(new java.awt.event.WindowAdapter() {
             @Override
             public void windowClosing(java.awt.event.WindowEvent windowEvent) {

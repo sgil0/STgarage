@@ -8,15 +8,19 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.util.ArrayList;
 import java.util.List;
 
 public class PanneauGestionVehicules extends JPanel {
 
     private JTextField txtImmat, txtMarque, txtModele, txtKm;
-    private JComboBox<Client> cbClients;
     private JTextField txtRecherche;
     private DefaultTableModel modeleTable;
     private GestionGarage garage;
+    private JTable table; // Promu en attribut de classe
+
+    // Liste des écouteurs (Observer Pattern)
+    private List<VehiculeSelectionListener> listeners = new ArrayList<>();
 
     public PanneauGestionVehicules(GestionGarage garage) {
         this.setLayout(new GridLayout(1, 2, 10, 0));
@@ -52,7 +56,7 @@ public class PanneauGestionVehicules extends JPanel {
 
         this.add(panelGauche);
 
-        // DROITE : Recherche + Tableau
+        // --- DROITE : Recherche + Tableau ---
         JPanel panelDroit = new JPanel(new BorderLayout(0, 10));
         JPanel pSearch = new JPanel(new FlowLayout(FlowLayout.LEFT));
         pSearch.add(new JLabel("Rechercher :"));
@@ -64,10 +68,21 @@ public class PanneauGestionVehicules extends JPanel {
         modeleTable = new DefaultTableModel(colonnes, 0) {
             @Override public boolean isCellEditable(int row, int column) { return false; }
         };
-        panelDroit.add(new JScrollPane(new JTable(modeleTable)), BorderLayout.CENTER);
+
+        // Configuration de la JTable avec écouteur de sélection
+        table = new JTable(modeleTable);
+        table.getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting() && table.getSelectedRow() != -1) {
+                // On récupère l'immatriculation (colonne 0)
+                String immat = (String) table.getValueAt(table.getSelectedRow(), 0);
+                notifierLesEcouteurs(immat);
+            }
+        });
+
+        panelDroit.add(new JScrollPane(table), BorderLayout.CENTER);
         this.add(panelDroit);
 
-        // Ajout Véhicule
+        // --- ACTIONS ---
         btnAjouter.addActionListener(e -> {
             try {
                 String immat = txtImmat.getText().trim().toUpperCase();
@@ -97,7 +112,7 @@ public class PanneauGestionVehicules extends JPanel {
                 Vehicule v = new Vehicule(immat, java.time.LocalDate.now(), (int)km, type, null);
                 garage.creerVehicule(v);
 
-                JOptionPane.showMessageDialog(this, v.getTypeVehicule().getMarque() + v.getTypeVehicule().getMarque() + "immatriculée " + v.getImmatriculation() + " ajoutée avec succès.");
+                JOptionPane.showMessageDialog(this, v.getTypeVehicule().getMarque() + " " + v.getTypeVehicule().getModele() + " ajoutée.");
                 txtImmat.setText(""); txtKm.setText("");
                 actualiserTableau(txtRecherche.getText());
 
@@ -111,6 +126,16 @@ public class PanneauGestionVehicules extends JPanel {
         });
 
         actualiserTableau("");
+    }
+
+    public void ajouterEcouteurSelection(VehiculeSelectionListener listener) {
+        this.listeners.add(listener);
+    }
+
+    private void notifierLesEcouteurs(String immat) {
+        for (VehiculeSelectionListener listener : listeners) {
+            listener.onVehiculeSelected(immat);
+        }
     }
 
     private TypeVehicule afficherFormulaireCreationType(String marque, String modele) {
@@ -142,10 +167,8 @@ public class PanneauGestionVehicules extends JPanel {
         modeleTable.setRowCount(0);
         if (resultats != null) {
             for (Vehicule v : resultats) {
-                // Gestion des nulls
                 String m = (v.getTypeVehicule() != null) ? v.getTypeVehicule().getMarque() : "Inconnue";
                 String mod = (v.getTypeVehicule() != null) ? v.getTypeVehicule().getModele() : "Inconnu";
-
                 String propNom = "Inconnu";
                 String propMail = "Inconnu";
 
@@ -154,12 +177,7 @@ public class PanneauGestionVehicules extends JPanel {
                     propMail = v.getProprietaire().getMail();
                 }
                 modeleTable.addRow(new Object[]{
-                        v.getImmatriculation(),
-                        m,
-                        mod,
-                        propNom,
-                        propMail,
-                        v.getKilometrage()
+                        v.getImmatriculation(), m, mod, propNom, propMail, v.getKilometrage()
                 });
             }
         }

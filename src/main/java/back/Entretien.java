@@ -1,40 +1,31 @@
 package back;
 
-import jakarta.persistence.*;
-
+import back.EnumType.ZoneIntervention;
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity;
 import java.util.List;
 
 @Entity
 @DiscriminatorValue("ENTRETIEN")
 public class Entretien extends TypeIntervention {
-    private float kilometrageMax;
 
-    // Nouveau constructeur "Tout-en-un"
-    public Entretien(String nom, int duree, List<Pieces> pieces, float kilometrageMax) {
-        super(); // Initialise les listes vides du parent
-        this.setNom(nom);
-        this.setDuree(duree);
-        this.setPiecesUtilisees(pieces);
-        this.kilometrageMax = kilometrageMax;
-
-        // Règles métier de l'Entretien
-        this.setTauxHoraire(90);
-
-        // Calcul automatique du prix (plus besoin de l'appeler dans le Main !)
-        this.calculerPrixForfait();
-    }
+    private int kilometrageMax; // Fréquence (ex: tous les 15000 km)
 
     public Entretien() {
         super();
-        this.kilometrageMax = 20000;
-        this.setTauxHoraire(90);
     }
 
-    public float getKilometrageMax() {
+    public Entretien(String nom, int duree, List<Pieces> piecesUtilisees, int kilometrageMax, ZoneIntervention zone) {
+        // On appelle le nouveau constructeur parent avec la Zone
+        super(nom, duree, piecesUtilisees, zone);
+        this.kilometrageMax = kilometrageMax;
+    }
+
+    public int getKilometrageMax() {
         return kilometrageMax;
     }
 
-    public void setKilometrageMax(float kilometrageMax) {
+    public void setKilometrageMax(int kilometrageMax) {
         this.kilometrageMax = kilometrageMax;
     }
 }

@@ -20,9 +20,6 @@ public class Pieces {
     @ManyToMany(mappedBy = "piecesUtilisees")
     private List<TypeIntervention> interventionsLiees;
 
-    @ManyToMany(mappedBy = "piecesReelles")
-    private List<Intervention> interventions;
-
     public Pieces(){
     }
 
@@ -32,7 +29,6 @@ public class Pieces {
         this.prix = prix;
         this.zone = zone;
         this.interventionsLiees = new ArrayList<>();;
-        this.interventions = new ArrayList<>();;
     }
 
     public float getPrix() {
@@ -45,10 +41,6 @@ public class Pieces {
 
     public void setZone(ZoneIntervention zone) {
         this.zone = zone;
-    }
-
-    public List<Intervention> getInterventions() {
-        return interventions;
     }
 
     public String getNom() {
