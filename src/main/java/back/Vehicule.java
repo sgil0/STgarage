@@ -64,15 +64,6 @@ public class Vehicule{
         this.typeVehicule = null;
     }
 
-    public Vehicule(String s, LocalDate date, int i, Client client) {
-        this.immatriculation = s;
-        this.miseCirc = date;
-        this.kilometrage = (float) i;
-        this.proprietaire = client;
-        this.listeInterventions = new ArrayList<>();
-        this.typeVehicule = null;
-    }
-
     public void setKilometrage(float nouveauKilometrage) throws IllegalArgumentException {
         if (nouveauKilometrage < this.kilometrage) {
             throw new IllegalArgumentException("Erreur E.2 : Le nouveau kilométrage ne peut pas être inférieur à l'ancien.");
@@ -96,6 +87,10 @@ public class Vehicule{
         return immatriculation;
     }
 
+    public Client getProprietaire() {
+        return proprietaire;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (!(o instanceof Vehicule vehicule)) return false;
@@ -113,7 +108,7 @@ public class Vehicule{
                 "immatriculation='" + immatriculation + '\'' +
                 ", miseCirc=" + miseCirc +
                 ", kilometrage=" + kilometrage +
-                ", prop=" + proprietaire +
+                ", prop=" + proprietaire.getMail() +
                 ", listeInterventions=" + listeInterventions +
                 ", typeVehicule=" + typeVehicule +
                 '}';

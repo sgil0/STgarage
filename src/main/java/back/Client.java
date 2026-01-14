@@ -56,6 +56,10 @@ public class Client {
         this.vehicules = vehicules;
     }
 
+    public String getIdentite() {
+        return nom.toUpperCase() + " " + prenom;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
@@ -76,7 +80,6 @@ public class Client {
                 ", prenom='" + prenom + '\'' +
                 ", mail='" + mail + '\'' +
                 ", adresse='" + adresse + '\'' +
-                ", immatsVehicules=" + vehicules +
                 '}';
     }
 }

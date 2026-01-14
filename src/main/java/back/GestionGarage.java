@@ -121,4 +121,29 @@ public class GestionGarage {
     public List<String> getNomsTypesIntervention() {
         return em.createQuery("SELECT t.nom FROM TypeIntervention t", String.class).getResultList();
     }
+
+    public TypeVehicule trouverTypeVehicule(String marque, String modele) {
+        try {
+            return em.createQuery(
+                            "SELECT t FROM TypeVehicule t WHERE LOWER(t.marque) = :marque AND LOWER(t.modele) = :modele",
+                            TypeVehicule.class)
+                    .setParameter("marque", marque.toLowerCase())
+                    .setParameter("modele", modele.toLowerCase())
+                    .getSingleResult();
+        } catch (NoResultException e) {
+            return null; // Pas trouvé
+        }
+    }
+
+    public List<Client> getTousLesClients() {
+        // Récupère tous les clients triés par nom
+        return em.createQuery("SELECT c FROM Client c ORDER BY c.nom ASC", Client.class)
+                .getResultList();
+    }
+
+    public void creerClient(Client c) {
+        em.getTransaction().begin();
+        em.persist(c);
+        em.getTransaction().commit();
+    }
 }

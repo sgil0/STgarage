@@ -1,16 +1,19 @@
 package front;
 
 import back.*;
+import back.EnumType.*;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.util.List;
 
 public class PanneauGestionVehicules extends JPanel {
 
-    private JTextField txtImmat, txtModele, txtKm;
+    private JTextField txtImmat, txtMarque, txtModele, txtKm;
+    private JComboBox<Client> cbClients;
     private JTextField txtRecherche;
     private DefaultTableModel modeleTable;
     private GestionGarage garage;
@@ -19,6 +22,7 @@ public class PanneauGestionVehicules extends JPanel {
         this.setLayout(new GridLayout(1, 2, 10, 0));
         this.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         this.garage = garage;
+
         // --- GAUCHE : Formulaire Ajout ---
         JPanel panelGauche = new JPanel(new GridBagLayout());
         panelGauche.setBorder(BorderFactory.createTitledBorder("Nouveau Véhicule"));
@@ -26,117 +30,138 @@ public class PanneauGestionVehicules extends JPanel {
         g.insets = new Insets(5, 5, 5, 5);
         g.fill = GridBagConstraints.HORIZONTAL;
 
+        // 1. Immat
         g.gridx=0; g.gridy=0; panelGauche.add(new JLabel("Immatriculation :"), g);
-        txtImmat = new JTextField(12);
-        g.gridx=1; panelGauche.add(txtImmat, g);
+        txtImmat = new JTextField(12); g.gridx=1; panelGauche.add(txtImmat, g);
 
-        g.gridx=0; g.gridy=1; panelGauche.add(new JLabel("Modèle :"), g);
-        txtModele = new JTextField(12);
-        g.gridx=1; panelGauche.add(txtModele, g);
+        // 2. Marque
+        g.gridx=0; g.gridy=1; panelGauche.add(new JLabel("Marque :"), g);
+        txtMarque = new JTextField(12); g.gridx=1; panelGauche.add(txtMarque, g);
 
-        g.gridx=0; g.gridy=2; panelGauche.add(new JLabel("Kilométrage :"), g);
-        txtKm = new JTextField(12);
-        g.gridx=1; panelGauche.add(txtKm, g);
+        // 3. Modèle
+        g.gridx=0; g.gridy=2; panelGauche.add(new JLabel("Modèle :"), g);
+        txtModele = new JTextField(12); g.gridx=1; panelGauche.add(txtModele, g);
 
-        JButton btnAjouter = new JButton("Ajouter");
-        g.gridx=0; g.gridy=3; g.gridwidth=2;
-        panelGauche.add(btnAjouter, g);
+        // 4. Kilométrage
+        g.gridx=0; g.gridy=3; panelGauche.add(new JLabel("Kilométrage :"), g);
+        txtKm = new JTextField(12); g.gridx=1; panelGauche.add(txtKm, g);
+
+        // Bouton Ajouter Véhicule
+        JButton btnAjouter = new JButton("Ajouter Véhicule");
+        g.gridx=0; g.gridy=5; g.gridwidth=2; panelGauche.add(btnAjouter, g);
 
         this.add(panelGauche);
 
         // DROITE : Recherche + Tableau
         JPanel panelDroit = new JPanel(new BorderLayout(0, 10));
-
         JPanel pSearch = new JPanel(new FlowLayout(FlowLayout.LEFT));
         pSearch.add(new JLabel("Rechercher :"));
         txtRecherche = new JTextField(15);
         pSearch.add(txtRecherche);
         panelDroit.add(pSearch, BorderLayout.NORTH);
 
-        String[] colonnes = {"Immat", "Marque", "Modèle", "KM"};
+        String[] colonnes = {"Immat", "Marque", "Modèle", "Propriétaire", "Email", "KM"};
         modeleTable = new DefaultTableModel(colonnes, 0) {
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
+            @Override public boolean isCellEditable(int row, int column) { return false; }
         };
-        JTable table = new JTable(modeleTable);
-        panelDroit.add(new JScrollPane(table), BorderLayout.CENTER);
-
+        panelDroit.add(new JScrollPane(new JTable(modeleTable)), BorderLayout.CENTER);
         this.add(panelDroit);
 
-        // --- ACTIONS ---
+        // Ajout Véhicule
         btnAjouter.addActionListener(e -> {
             try {
-                // 1. Récupération et nettoyage des données
                 String immat = txtImmat.getText().trim().toUpperCase();
+                String marque = txtMarque.getText().trim();
                 String modele = txtModele.getText().trim();
                 String kmText = txtKm.getText().trim();
 
-                // 2. Validations de base
-                if (immat.isEmpty()) throw new Exception("L'immatriculation est obligatoire.");
-                if (modele.isEmpty()) throw new Exception("Le modèle est obligatoire.");
-                if (kmText.isEmpty()) throw new Exception("Le kilométrage est obligatoire.");
-
-                // Conversion du kilométrage (risque d'erreur si ce n'est pas un nombre)
-                float km;
-                try {
-                    km = Float.parseFloat(kmText);
-                } catch (NumberFormatException nfe) {
-                    throw new Exception("Le kilométrage doit être un nombre valide (ex: 50000).");
+                if (immat.isEmpty() || marque.isEmpty() || modele.isEmpty() || kmText.isEmpty()) {
+                    throw new Exception("Tous les champs sont obligatoires.");
                 }
 
-                // 3. Création de l'objet Véhicule
-                // (On met null pour le client et le type pour l'instant)
-                Vehicule v = new Vehicule(immat, java.time.LocalDate.now(), (int) km, null); // Note: casting en int car votre constructeur prend un int actuellement
+                // Vérif TypeVehicule
+                TypeVehicule type = garage.trouverTypeVehicule(marque, modele);
+                if (type == null) {
+                    int choix = JOptionPane.showConfirmDialog(this,
+                            "Modèle inconnu. Configurer " + marque + " " + modele + " ?", "Nouveau Modèle", JOptionPane.YES_NO_OPTION);
+                    if (choix == JOptionPane.YES_OPTION) {
+                        type = afficherFormulaireCreationType(marque, modele);
+                        if (type != null) garage.creerTypeVehicule(type);
+                        else return;
+                    } else return;
+                }
 
-                // 4. ENVOI AU BACKEND
+                float km = Float.parseFloat(kmText);
+
+                // Création
+                Vehicule v = new Vehicule(immat, java.time.LocalDate.now(), (int)km, type, null);
                 garage.creerVehicule(v);
 
-                // 5. Succès
-                JOptionPane.showMessageDialog(this, "Véhicule " + immat + " ajouté avec succès !");
-
-                // Reset des champs pour la prochaine saisie
-                txtImmat.setText("");
-                txtModele.setText("");
-                txtKm.setText("");
+                JOptionPane.showMessageDialog(this, v.getTypeVehicule().getMarque() + v.getTypeVehicule().getMarque() + "immatriculée " + v.getImmatriculation() + " ajoutée avec succès.");
+                txtImmat.setText(""); txtKm.setText("");
+                actualiserTableau(txtRecherche.getText());
 
             } catch (Exception ex) {
-                // Affichage propre de l'erreur
-                JOptionPane.showMessageDialog(this,
-                        "Erreur : " + ex.getMessage(),
-                        "Impossible d'ajouter",
-                        JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Erreur : " + ex.getMessage(), "Erreur", JOptionPane.ERROR_MESSAGE);
             }
         });
 
         txtRecherche.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyReleased(KeyEvent e) {
-                String texte = txtRecherche.getText().trim();
-                java.util.List<back.Vehicule> resultats = garage.rechercherVehicules(texte);
-
-                // 1. On vide le tableau (très important !)
-                modeleTable.setRowCount(0);
-
-                // 2. On remplit s'il y a des résultats
-                if (!resultats.isEmpty()) {
-                    for (back.Vehicule v : resultats) {
-                        // Récupération sécurisée du modèle
-                        String modeleAffiche = "Inconnu";
-                        if (v.getTypeVehicule() != null) {
-                            modeleAffiche = v.getTypeVehicule().getMarque() + " " + v.getTypeVehicule().getModele();
-                        }
-
-                        modeleTable.addRow(new Object[]{
-                                v.getImmatriculation(),
-                                v.getTypeVehicule().getMarque(),
-                                v.getTypeVehicule().getModele(),
-                                v.getKilometrage()
-                        });
-                    }
-                }
-            }
+            @Override public void keyReleased(KeyEvent e) { actualiserTableau(txtRecherche.getText()); }
         });
+
+        actualiserTableau("");
+    }
+
+    private TypeVehicule afficherFormulaireCreationType(String marque, String modele) {
+        JPanel panel = new JPanel(new GridLayout(0, 2, 10, 10));
+        JComboBox<Energie> cbEnergie = new JComboBox<>(Energie.values());
+        JComboBox<BoiteVitesse> cbBoite = new JComboBox<>(BoiteVitesse.values());
+        JSpinner spinPortes = new JSpinner(new SpinnerNumberModel(5, 2, 9, 1));
+        JSpinner spinPlaces = new JSpinner(new SpinnerNumberModel(5, 1, 9, 1));
+        JTextField txtPuissance = new JTextField();
+
+        panel.add(new JLabel("Énergie :")); panel.add(cbEnergie);
+        panel.add(new JLabel("Boîte :")); panel.add(cbBoite);
+        panel.add(new JLabel("Portes :")); panel.add(spinPortes);
+        panel.add(new JLabel("Places :")); panel.add(spinPlaces);
+        panel.add(new JLabel("Puissance (ch) :")); panel.add(txtPuissance);
+
+        int result = JOptionPane.showConfirmDialog(null, panel, "Config : " + marque + " " + modele, JOptionPane.OK_CANCEL_OPTION);
+        if (result == JOptionPane.OK_OPTION) {
+            try {
+                return new TypeVehicule(marque, modele, (Energie)cbEnergie.getSelectedItem(), (BoiteVitesse)cbBoite.getSelectedItem(),
+                        (int)spinPlaces.getValue(), (int)spinPortes.getValue(), Integer.parseInt(txtPuissance.getText()));
+            } catch (Exception e) { return null; }
+        }
+        return null;
+    }
+
+    private void actualiserTableau(String filtre) {
+        List<Vehicule> resultats = garage.rechercherVehicules(filtre.trim());
+        modeleTable.setRowCount(0);
+        if (resultats != null) {
+            for (Vehicule v : resultats) {
+                // Gestion des nulls
+                String m = (v.getTypeVehicule() != null) ? v.getTypeVehicule().getMarque() : "Inconnue";
+                String mod = (v.getTypeVehicule() != null) ? v.getTypeVehicule().getModele() : "Inconnu";
+
+                String propNom = "Inconnu";
+                String propMail = "Inconnu";
+
+                if (v.getProprietaire() != null) {
+                    propNom = v.getProprietaire().getIdentite();
+                    propMail = v.getProprietaire().getMail();
+                }
+                modeleTable.addRow(new Object[]{
+                        v.getImmatriculation(),
+                        m,
+                        mod,
+                        propNom,
+                        propMail,
+                        v.getKilometrage()
+                });
+            }
+        }
     }
 }

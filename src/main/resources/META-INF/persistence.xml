@@ -17,8 +17,8 @@
             <property name="jakarta.persistence.jdbc.url" value="jdbc:mysql://localhost:3306/stgarage"/>
             <property name="jakarta.persistence.jdbc.user" value="root"/>
             <property name="jakarta.persistence.jdbc.password" value="test"/>
-            <property name="jakarta.persistence.schema-generation.database.action" value="drop-and-create"/>
-            <property name="jakarta.persistence.schema-generation.scripts.action" value="drop-and-create"/>
+            <property name="jakarta.persistence.schema-generation.database.action" value="none"/>
+            <property name="jakarta.persistence.schema-generation.scripts.action" value="none"/>
             <property name="jakarta.persistence.schema-generation.scripts.create-target" value="createTableScript"/>
             <property name="jakarta.persistence.schema-generation.scripts.drop-target" value="deleteTableScript"/>
         </properties>
