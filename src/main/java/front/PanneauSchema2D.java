@@ -2,7 +2,6 @@ package front;
 
 import back.*;
 import back.EnumType.*;
-
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
@@ -18,20 +17,24 @@ public class PanneauSchema2D extends JPanel {
     private Vehicule vehiculeCourant;
     private SchemaListener listener;
 
+    // Couleur fond carte
+    private final Color COLOR_CARD = new Color(60, 60, 60);
+
     public PanneauSchema2D(GestionGarage garage) {
         this.garage = garage;
         this.setLayout(new BorderLayout());
-        this.setBackground(Color.WHITE);
-        this.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        this.setBackground(COLOR_CARD); // Fond gris
+        // Plus de bordure noire moche
 
-        infoLabel = new JLabel("Sélectionnez un véhicule dans l'onglet 'Gestion Véhicules'", SwingConstants.CENTER);
-        infoLabel.setFont(new Font("Arial", Font.BOLD, 12));
+        infoLabel = new JLabel("Sélectionnez un véhicule", SwingConstants.CENTER);
+        infoLabel.setFont(new Font("SansSerif", Font.BOLD, 12));
+        infoLabel.setForeground(Color.LIGHT_GRAY);
         this.add(infoLabel, BorderLayout.NORTH);
 
         this.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                if (vehiculeCourant == null) return; // On ne fait rien si pas de véhicule
+                if (vehiculeCourant == null) return;
                 verifierZone(e.getX(), e.getY());
             }
         });
@@ -48,26 +51,35 @@ public class PanneauSchema2D extends JPanel {
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         int w = getWidth(); int h = getHeight(); int cx = w / 2; int cy = h / 2;
 
-        // --- DESSIN DE LA VOITURE (Identique) ---
-        g2.setColor(Color.BLUE);
+        // --- DESSIN ADAPTÉ DARK MODE ---
+
+        // Roues (Gris foncé ou Noir)
+        g2.setColor(new Color(30, 30, 30));
         g2.fillRect(cx - 70, cy - 100, 20, 40); g2.fillRect(cx + 50, cy - 100, 20, 40);
-        g2.setColor(new Color(200, 200, 255));
-        g2.fillRoundRect(cx - 50, cy - 130, 100, 50, 20, 20);
-        g2.setColor(Color.BLUE); g2.drawString("AVANT", cx - 20, cy - 110);
-
-        g2.setColor(new Color(0, 128, 0));
         g2.fillRect(cx - 70, cy + 60, 20, 40); g2.fillRect(cx + 50, cy + 60, 20, 40);
-        g2.setColor(new Color(200, 255, 200));
-        g2.fillRoundRect(cx - 50, cy + 80, 100, 50, 20, 20);
-        g2.setColor(new Color(0, 128, 0)); g2.drawString("ARRIÈRE", cx - 25, cy + 105);
 
+        // Corps Avant (Bleu plus sombre/pastel)
+        g2.setColor(new Color(80, 100, 180));
+        g2.fillRoundRect(cx - 50, cy - 130, 100, 50, 20, 20);
+        g2.setColor(Color.WHITE);
+        g2.drawString("AVANT", cx - 20, cy - 110);
+
+        // Corps Arrière (Vert plus sombre/pastel)
+        g2.setColor(new Color(80, 160, 100));
+        g2.fillRoundRect(cx - 50, cy + 80, 100, 50, 20, 20);
+        g2.setColor(Color.WHITE);
+        g2.drawString("ARRIÈRE", cx - 25, cy + 105);
+
+        // Habitacle (Contour Blanc)
         g2.setColor(Color.LIGHT_GRAY);
         g2.drawRoundRect(cx - 50, cy - 80, 100, 160, 10, 10);
 
-        g2.setColor(new Color(255, 200, 200));
+        // Moteur (Rouge pastel)
+        g2.setColor(new Color(200, 100, 100));
         g2.fillRect(cx - 40, cy - 70, 80, 60);
-        g2.setColor(Color.RED);
+        g2.setColor(new Color(255, 80, 80)); // Bordure rouge vif
         g2.drawRect(cx - 40, cy - 70, 80, 60);
+        g2.setColor(Color.WHITE);
         g2.drawString("MOTEUR", cx - 25, cy - 40);
     }
 
@@ -88,22 +100,31 @@ public class PanneauSchema2D extends JPanel {
 
     private void ouvrirPopup(String titreZone, List<TypeIntervention> dispos) {
         if (dispos.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Aucune intervention disponible pour cette zone sur ce type de moteur.");
+            JOptionPane.showMessageDialog(this, "Aucune intervention disponible.");
             return;
         }
 
+        // Création du panel interne de la popup
         JPanel p = new JPanel(new GridLayout(0, 1));
+        p.setBackground(new Color(45, 45, 45)); // Fond sombre explicite pour le contenu
+
         List<JCheckBox> checkboxes = new ArrayList<>();
 
         for (TypeIntervention type : dispos) {
             JCheckBox box = new JCheckBox(type.getNom() + " (" + type.getPrix() + "€)");
+
+            // STYLE CHECKBOX
+            box.setBackground(new Color(45, 45, 45)); // Fond sombre
+            box.setForeground(Color.WHITE);           // Texte blanc
+            box.setFocusPainted(false);
+
             if (typesSelectionnes.contains(type)) box.setSelected(true);
             box.putClientProperty("typeObj", type);
             checkboxes.add(box);
             p.add(box);
         }
 
-        int rep = JOptionPane.showConfirmDialog(this, p, "Interventions : " + titreZone, JOptionPane.OK_CANCEL_OPTION);
+        int rep = JOptionPane.showConfirmDialog(this, p, "Zone : " + titreZone, JOptionPane.OK_CANCEL_OPTION);
 
         if (rep == JOptionPane.OK_OPTION) {
             for (JCheckBox box : checkboxes) {
@@ -120,18 +141,15 @@ public class PanneauSchema2D extends JPanel {
 
     public void setVehicule(Vehicule v) {
         this.vehiculeCourant = v;
-        reset(); // On vide la sélection précédente
-        if (v != null) {
-            infoLabel.setText(""); // On vide le label car l'info sera ailleurs
-        }
+        reset();
+        if (v != null) infoLabel.setText("");
+        this.repaint(); // Important pour redessiner sur fond gris
     }
 
-    public List<TypeIntervention> getTypesSelectionnes() {
-        return typesSelectionnes;
-    }
+    public List<TypeIntervention> getTypesSelectionnes() { return typesSelectionnes; }
 
     public void reset() {
         typesSelectionnes.clear();
-        if (listener != null) listener.onSelectionChanged(typesSelectionnes); // Vide la liste visuelle
+        if (listener != null) listener.onSelectionChanged(typesSelectionnes);
     }
 }
