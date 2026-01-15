@@ -1,6 +1,8 @@
 package back;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 
 import java.time.LocalDate;
 import java.time.Month;
@@ -8,33 +10,41 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Objects;
 
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
-
 @Entity
-public class Vehicule{
-    public static final String FORMAT_SIV = "^[A-Z]{2}-\\d{3}-[A-Z]{2}$";
+public class Vehicule {
 
+    // =========================================================================
+    // Attributs
+    // =========================================================================
+
+    // Format immatriculation
+    public static final String FORMAT_SIV = "^[A-Z]{2}-\\d{3}-[A-Z]{2}$";
     @Id
     @Column(length = 9, nullable = false)
     @NotNull
-    // Regex stricte pour le format SIV (ex: AA-123-BB)
     @Pattern(regexp = "^[A-Z]{2}-\\d{3}-[A-Z]{2}$", message = "Format invalide. Attendu : AA-123-BB")
     private String immatriculation;
 
     private LocalDate miseCirc;
     private float kilometrage;
 
+    // Client many to one
     @ManyToOne
     @JoinColumn(name = "id_proprietaire")
     private Client proprietaire;
 
+    // Intervention one to many
     @OneToMany(mappedBy = "vehicule")
     private Collection<Intervention> listeInterventions;
 
+    // TypeVehicule many to one
     @ManyToOne
     @JoinColumn(name = "id_type_vehicule")
     private TypeVehicule typeVehicule;
+
+    // =========================================================================
+    // Constructeurs
+    // =========================================================================
 
     public Vehicule(String immatriculation, LocalDate miseCirc, float kilometrage, TypeVehicule typeVehicule, Client proprietaire) {
         if (immatriculation == null) {
@@ -56,13 +66,16 @@ public class Vehicule{
 
     public Vehicule() {
         this.immatriculation = "AA-000-AA";
-        this.miseCirc = LocalDate.of(2000, Month.JANUARY, 1); // par défaut 01/01/2000
+        this.miseCirc = LocalDate.of(2000, Month.JANUARY, 1);
         this.kilometrage = 1000;
         this.proprietaire = null;
         this.listeInterventions = new ArrayList<>();
         this.typeVehicule = null;
     }
 
+    // =========================================================================
+    // Setters
+    // =========================================================================
     public void setKilometrage(float nouveauKilometrage) throws IllegalArgumentException {
         if (nouveauKilometrage < this.kilometrage) {
             throw new IllegalArgumentException("Erreur E.2 : Le nouveau kilométrage ne peut pas être inférieur à l'ancien.");
@@ -70,14 +83,14 @@ public class Vehicule{
         this.kilometrage = nouveauKilometrage;
     }
 
-    public float getKilometrage() {
-        return kilometrage;
-    }
 
     public void setProprietaire(Client client) {
         this.proprietaire = client;
     }
 
+    // =========================================================================
+    // Getters
+    // =========================================================================
     public TypeVehicule getTypeVehicule() {
         return typeVehicule;
     }
@@ -89,6 +102,14 @@ public class Vehicule{
     public Client getProprietaire() {
         return proprietaire;
     }
+
+    public float getKilometrage() {
+        return kilometrage;
+    }
+
+    // =========================================================================
+    // Equals, Hashcode & toString
+    // =========================================================================
 
     @Override
     public boolean equals(Object o) {

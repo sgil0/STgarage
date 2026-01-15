@@ -7,8 +7,16 @@ import java.util.List;
 
 public class PanneauUrgences extends JPanel {
 
-    private DefaultListModel<String> modele;
-    private GestionGarage garage;
+    // =========================================================================
+    // Attributs
+    // =========================================================================
+
+    private final DefaultListModel<String> modele;
+    private final GestionGarage garage;
+
+    // =========================================================================
+    // Constructeurs
+    // =========================================================================
 
     public PanneauUrgences(GestionGarage garage) {
         this.garage = garage;
@@ -34,19 +42,18 @@ public class PanneauUrgences extends JPanel {
                     jc.setOpaque(false);
 
                     if (txt.contains("URGENT")) {
-                        c.setForeground(new Color(255, 85, 85)); // Rouge clair (Pastel Red)
+                        c.setForeground(new Color(255, 85, 85)); // Rouge clair
                         c.setFont(c.getFont().deriveFont(Font.BOLD));
                     } else {
-                        c.setForeground(new Color(80, 250, 123)); // Vert Fluo (Dracula Green style)
+                        c.setForeground(new Color(80, 250, 123)); // Vert Fluo
                     }
                 }
                 return c;
             }
         });
 
-        // Configuration JList
-        liste.setOpaque(false); // Transparent
-        liste.setBackground(new Color(0,0,0,0)); // Vraiment transparent
+        liste.setOpaque(false);
+        liste.setBackground(new Color(0, 0, 0, 0));
 
         JScrollPane scroll = new JScrollPane(liste);
         scroll.setBorder(BorderFactory.createEmptyBorder());
@@ -56,6 +63,13 @@ public class PanneauUrgences extends JPanel {
         this.add(scroll, BorderLayout.CENTER);
     }
 
+    // =========================================================================
+    // Méthodes
+    // =========================================================================
+
+    // =========================================================================
+    // Mise à jour des entretiens affichés en fonction de l'immatriculation
+    // =========================================================================
     public void mettreAJour(String immat) {
         modele.clear();
         if (immat == null) {

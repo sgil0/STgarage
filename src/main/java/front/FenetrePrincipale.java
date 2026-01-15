@@ -2,28 +2,33 @@ package front;
 
 import back.GestionGarage;
 import javax.swing.*;
-import javax.swing.plaf.nimbus.NimbusLookAndFeel;
 import java.awt.*;
 
 public class FenetrePrincipale extends JFrame {
 
-    private GestionGarage garage;
+    // =========================================================================
+    // Attributs
+    // =========================================================================
 
-    // Couleurs Ubuntu
-    private static final Color UBUNTU_BG = new Color(45, 45, 45);
-    private static final Color UBUNTU_ORANGE = new Color(233, 84, 32);
-    private static final Color UBUNTU_TEXT = new Color(245, 245, 245);
+    private static final Color COLOR_BG = new Color(45, 45, 45);
+    private static final Color COLOR_ORANGE = new Color(233, 84, 32);
+    private static final Color COLOR_TEXT = new Color(245, 245, 245);
+
+    private final GestionGarage garage;
+
+    // =========================================================================
+    // Constructeurs
+    // =========================================================================
 
     public FenetrePrincipale() {
         this.garage = new GestionGarage();
-        this.setTitle("ST Garage - Gestion Garage");
+        this.setTitle("Auto2I - Gestion Garage");
         this.setSize(1350, 850);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setLocationRelativeTo(null);
 
         // Appliquer le fond global à la fenêtre
-        this.getContentPane().setBackground(UBUNTU_BG);
-
+        this.getContentPane().setBackground(COLOR_BG);
         this.setLayout(new BorderLayout());
 
         PanneauGestionVehicules panneauVehicules = new PanneauGestionVehicules(this.garage);
@@ -34,18 +39,24 @@ public class FenetrePrincipale extends JFrame {
             panneauInterventions.chargerVehicule(immat);
         });
 
-        // --- CUSTOMISATION DES ONGLETS ---
+        // Configuration des onglets
         JTabbedPane onglets = new JTabbedPane();
         onglets.setFont(new Font("SansSerif", Font.BOLD, 14));
-        onglets.setBackground(UBUNTU_BG); // Fond de la barre d'onglets
-        onglets.setForeground(Color.LIGHT_GRAY); // Couleur texte onglet inactif
+        onglets.setBackground(COLOR_BG);
+        onglets.setForeground(Color.LIGHT_GRAY);
 
-        // Astuce : On ne peut pas changer la couleur "Selected" facilement en pur Nimbus via code
-        // sans toucher à l'UIManager global (fait dans le main), mais on peut tweaker ici :
-        onglets.addTab("  GESTION VEHICULES  ", panneauVehicules);
-        onglets.addTab("  GESTION INTERVENTIONS  ", panneauInterventions);
+        onglets.addTab("  Gestion Véhicules  ", panneauVehicules);
+        onglets.addTab("  Gestions Interventions  ", panneauInterventions);
 
-        // Retirer la bordure blanche autour du contenu
+        // Quand on change d'onglet, on met à jour les données
+        onglets.addChangeListener(e -> {
+            if (onglets.getSelectedIndex() == 0) {
+                panneauVehicules.rechargerDonnees();
+            }
+        });
+
+        onglets.setBorder(BorderFactory.createEmptyBorder());
+        this.add(onglets, BorderLayout.CENTER);
         onglets.setBorder(BorderFactory.createEmptyBorder());
 
         this.add(onglets, BorderLayout.CENTER);
@@ -58,10 +69,12 @@ public class FenetrePrincipale extends JFrame {
         });
     }
 
+    // =========================================================================
+    // Méthodes
+    // =========================================================================
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             try {
-                // 1. Activation de Nimbus
                 for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
                     if ("Nimbus".equals(info.getName())) {
                         UIManager.setLookAndFeel(info.getClassName());
@@ -69,43 +82,43 @@ public class FenetrePrincipale extends JFrame {
                     }
                 }
 
-                // 2. --- THEME UBUNTU DARK GLOBAL ---
+                // Configuration du Thème Global
+                // FONDS
+                UIManager.put("control", COLOR_BG);
+                UIManager.put("nimbusBase", COLOR_BG);
+                UIManager.put("nimbusFocus", COLOR_ORANGE);
+                UIManager.put("OptionPane.background", COLOR_BG);
+                UIManager.put("Panel.background", COLOR_BG);
 
-                // A. FONDS (Backgrounds)
-                UIManager.put("control", UBUNTU_BG);          // Fond fenêtres
-                UIManager.put("nimbusBase", UBUNTU_BG);       // Base Nimbus
-                UIManager.put("nimbusFocus", UBUNTU_ORANGE);  // Focus global
-                UIManager.put("OptionPane.background", UBUNTU_BG);
-                UIManager.put("Panel.background", UBUNTU_BG);
+                // TEXTES
+                UIManager.put("text", COLOR_TEXT);
+                UIManager.put("controlText", COLOR_TEXT);
+                UIManager.put("infoText", COLOR_TEXT);
+                UIManager.put("OptionPane.messageForeground", COLOR_TEXT);
+                UIManager.put("Label.foreground", COLOR_TEXT);
 
-                // B. TEXTES (C'est ici que ça se joue !)
-                // On écrase les couleurs "système" qui forcent le noir
-                UIManager.put("text", UBUNTU_TEXT);           // Texte par défaut
-                UIManager.put("controlText", UBUNTU_TEXT);    // Texte des contrôles
-                UIManager.put("infoText", UBUNTU_TEXT);       // Texte d'info (tooltips)
-
-                // Spécifique OptionPane (Message & Titre interne)
-                UIManager.put("OptionPane.messageForeground", UBUNTU_TEXT);
-                UIManager.put("OptionPane.foreground", UBUNTU_TEXT);
-
-                // Labels standards
-                UIManager.put("Label.foreground", UBUNTU_TEXT);
-
-                // C. BOUTONS (Dans les popups)
+                // BOUTONS
                 UIManager.put("Button.background", new Color(70, 70, 70));
                 UIManager.put("Button.foreground", Color.WHITE);
 
-                // D. ONGLETS (TabbedPane)
-                UIManager.put("TabbedPane.background", UBUNTU_BG);
-                UIManager.put("TabbedPane.foreground", UBUNTU_TEXT);
-                UIManager.put("TabbedPane.selected", UBUNTU_ORANGE);
+                // ONGLETS
+                UIManager.put("TabbedPane.background", COLOR_BG);
+                UIManager.put("TabbedPane.foreground", COLOR_TEXT);
+                UIManager.put("TabbedPane.selected", COLOR_ORANGE);
                 UIManager.put("TabbedPane.selectedForeground", Color.WHITE);
-                UIManager.put("TabbedPane.contentAreaColor", UBUNTU_BG);
-                UIManager.put("TabbedPane.shadow", UBUNTU_BG);
+                UIManager.put("TabbedPane.contentAreaColor", COLOR_BG);
+                UIManager.put("TabbedPane.shadow", COLOR_BG);
 
-                // E. SCROLLBAR
+                // SCROLLBAR
                 UIManager.put("ScrollBar.thumb", new Color(80, 80, 80));
-                UIManager.put("ScrollBar.track", UBUNTU_BG);
+                UIManager.put("ScrollBar.track", COLOR_BG);
+
+                // TOOLTIPS
+                Color tooltipBg = new Color(60, 60, 60);
+                UIManager.put("ToolTip.background", tooltipBg);
+                UIManager.put("ToolTip.foreground", Color.WHITE);
+                UIManager.put("ToolTip.border", BorderFactory.createLineBorder(new Color(100, 100, 100)));
+                UIManager.put("info", tooltipBg);
 
             } catch (Exception e) {
                 e.printStackTrace();

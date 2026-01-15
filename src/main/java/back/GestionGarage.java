@@ -1,53 +1,82 @@
 package back;
 
-import back.EnumType.*;
+import back.EnumType.Energie;
+import back.EnumType.ZoneIntervention;
 import jakarta.persistence.*;
-import java.util.List;
+
 import java.util.ArrayList;
+import java.util.List;
 
 public class GestionGarage {
 
-    private EntityManagerFactory emf;
-    private EntityManager em;
+    // =========================================================================
+    // Attributs
+    // =========================================================================
 
+    private final EntityManagerFactory emf;
+    private final EntityManager em;
+
+    // =========================================================================
+    // Méthodes
+    // =========================================================================
+
+    // =========================================================================
+    // Chargement de la configuration JPA et ouverture de la connexion à la BDD via l'EntityManager.
+    // =========================================================================
     public GestionGarage() {
-        // Assurez-vous que le nom correspond à votre persistence.xml
         this.emf = Persistence.createEntityManagerFactory("STgaragePU");
         this.em = emf.createEntityManager();
     }
 
+    // =========================================================================
+    // Fermeture de l'EntityManager et la Factory
+    // =========================================================================
     public void fermer() {
         if (em.isOpen()) em.close();
         if (emf.isOpen()) emf.close();
     }
 
     // =========================================================================
-    // 1. GESTION DES DONNÉES DE BASE (CRUD)
+    // Intéractions BDD
     // =========================================================================
 
+    // =========================================================================
+    // Création d'une pièce
+    // =========================================================================
     public void creerPiece(String ref, String nom, float prix, ZoneIntervention zone) {
         if (em.find(Pieces.class, ref) != null) return;
         em.getTransaction().begin();
         em.persist(new Pieces(ref, nom, prix, zone));
         em.getTransaction().commit();
     }
-
+    // =========================================================================
+    // Récupérer une pièce avec sa ref
+    // =========================================================================
     public Pieces getPiece(String ref) {
         return em.find(Pieces.class, ref);
     }
 
+    // =========================================================================
+    // Création d'un TypeIntervention
+    // =========================================================================
     public void creerTypeIntervention(TypeIntervention type) {
         em.getTransaction().begin();
         em.persist(type);
         em.getTransaction().commit();
     }
 
-    public void creerVehicule(Vehicule vehicule){
+    // =========================================================================
+    // Création d'un véhicule
+    // =========================================================================
+    public void creerVehicule(Vehicule vehicule) {
         em.getTransaction().begin();
         em.persist(vehicule);
         em.getTransaction().commit();
     }
 
+    // =========================================================================
+    // Créer un client et l'associer à un véhicule
+    // =========================================================================
     public void creerClientEtVehicule(Client c, Vehicule v) {
         em.getTransaction().begin();
         em.persist(c);
@@ -56,34 +85,78 @@ public class GestionGarage {
         em.getTransaction().commit();
     }
 
-    public void creerTypeVehicule(TypeVehicule type) {
-        em.getTransaction().begin();
-        em.persist(type);
-        em.getTransaction().commit();
+    // =========================================================================
+    // Création d'un nouveau Type de véhicule
+    // =========================================================================
+    public void creerTypeVehicule(TypeVehicule t) {
+        try {
+            em.getTransaction().begin();
+            em.persist(t);
+            em.getTransaction().commit();
+        } catch (Exception e) {
+            if (em.getTransaction().isActive()) em.getTransaction().rollback();
+            e.printStackTrace();
+        }
     }
 
+    // =========================================================================
+    // Créer un client
+    // =========================================================================
     public void creerClient(Client c) {
-        em.getTransaction().begin();
-        em.persist(c);
-        em.getTransaction().commit();
+        try {
+            em.getTransaction().begin();
+            em.persist(c);
+            em.getTransaction().commit();
+        } catch (Exception e) {
+            if (em.getTransaction().isActive()) em.getTransaction().rollback();
+            e.printStackTrace();
+        }
+    }
+    // =========================================================================
+    // Recherche des clients par mot-clé (Nom, Prénom ou Email).
+    // =========================================================================
+    public List<Client> rechercherClients(String recherche) {
+        try {
+            if (recherche == null || recherche.trim().isEmpty()) {
+                return em.createQuery("SELECT c FROM Client c", Client.class).getResultList();
+            }
+            return em.createQuery("SELECT c FROM Client c WHERE LOWER(c.nom) LIKE :r OR LOWER(c.prenom) LIKE :r OR LOWER(c.mail) LIKE :r", Client.class)
+                    .setParameter("r", "%" + recherche.toLowerCase() + "%")
+                    .getResultList();
+        } catch (Exception e) {
+            return new ArrayList<>();
+        }
     }
 
     // =========================================================================
-    // 2. LOGIQUE MÉTIER : INTERVENTIONS & COMPATIBILITÉ
+    // Associe un client existant à un véhicule identifié par son immatriculation.
     // =========================================================================
+    public void associerClientAVehicule(String immat, Client c) {
+        try {
+            em.getTransaction().begin();
+            Vehicule v = em.find(Vehicule.class, immat);
+            if (v != null) {
+                v.setProprietaire(c);
+                em.merge(v);
+            }
+            em.getTransaction().commit();
+        } catch (Exception e) {
+            if (em.getTransaction().isActive()) em.getTransaction().rollback();
+            e.printStackTrace();
+        }
+    }
 
-    /**
-     * Récupère les TYPES d'intervention possibles pour une zone donnée et un véhicule donné.
-     * Utilisé par le Schéma 2D pour afficher les checkboxes.
-     */
+    // =========================================================================
+    // Récupérer les TYPES d'intervention possibles pour une zone donnée et un véhicule donné.
+    // =========================================================================
     public List<TypeIntervention> getTypesParZoneEtEnergie(ZoneIntervention zone, Energie energieVehicule) {
-        // 1. On récupère tout ce qui est dans la bonne zone
+        // Récupération de ce qui se trouve dans la zone
         List<TypeIntervention> tousDansZone = em.createQuery(
                         "SELECT t FROM TypeIntervention t WHERE t.zone = :zone", TypeIntervention.class)
                 .setParameter("zone", zone)
                 .getResultList();
 
-        // 2. On filtre selon l'énergie du véhicule
+        // Filtrage selon l'énergie du véhicule
         List<TypeIntervention> result = new ArrayList<>();
         for (TypeIntervention t : tousDansZone) {
             if (t.estCompatible(energieVehicule)) {
@@ -93,18 +166,19 @@ public class GestionGarage {
         return result;
     }
 
-    /**
-     * CRÉATION D'UNE INTERVENTION (Refactorisé)
-     * Prend désormais une LISTE de types d'intervention choisis.
-     */
+    // =========================================================================
+    // Création d'une intervention
+    // =========================================================================
     public Intervention creerIntervention(String immat, List<TypeIntervention> typesChoisis, float kmActuel) {
         em.getTransaction().begin();
         try {
             Vehicule v = em.find(Vehicule.class, immat);
             if (v == null) throw new IllegalArgumentException("Véhicule introuvable : " + immat);
 
+            // Récupération de l'énergie du véhicule, null si TypeVehicule inconnu
             Energie energie = (v.getTypeVehicule() != null) ? v.getTypeVehicule().getEnergie() : null;
 
+            // Vérification compatibilitée (vidange incompatible avec electrique)
             if (energie != null) {
                 for (TypeIntervention t : typesChoisis) {
                     if (!t.estCompatible(energie)) {
@@ -118,11 +192,12 @@ public class GestionGarage {
             em.persist(interv);
             em.getTransaction().commit();
 
-            System.out.println("✅ Intervention créée pour " + immat + " | Total : " + interv.getPrix() + "€");
+            System.out.println("Intervention créée pour " + immat + " | Total : " + interv.getPrix() + "€");
 
             return interv;
 
         } catch (Exception e) {
+            // Annulation transaction si erreur
             if (em.getTransaction().isActive()) em.getTransaction().rollback();
             // On propage l'erreur pour l'afficher dans le JOptionPane du Front
             throw new RuntimeException(e.getMessage());
@@ -130,39 +205,32 @@ public class GestionGarage {
     }
 
     // =========================================================================
-    // 3. LOGIQUE MÉTIER : URGENCES & MAINTENANCE
+    // Analyse l'état des entretiens pour un véhicule donné
+    // Filtre les entretiens incompatibles (ex: Vidange sur Électrique).
     // =========================================================================
-
-    /**
-     * Analyse l'état des entretiens pour un véhicule donné.
-     * Filtre les entretiens incompatibles (ex: Vidange sur Électrique).
-     */
     public List<String> analyserUrgences(String immat) {
         List<String> rapport = new ArrayList<>();
 
-        // 1. Récupérer le véhicule
         Vehicule v = em.find(Vehicule.class, immat);
         if (v == null) return rapport;
 
-        // Récupérer son énergie
         Energie energieVehicule = null;
         if (v.getTypeVehicule() != null) {
             energieVehicule = v.getTypeVehicule().getEnergie();
         }
 
-        // 2. Récupérer TOUS les entretiens (Entretien extends TypeIntervention)
+        // Récupérer les entretiens
         List<Entretien> typesEntretien = em.createQuery("SELECT e FROM Entretien e", Entretien.class).getResultList();
 
-        // 3. Pour chaque type, vérifier
+        //
         for (Entretien type : typesEntretien) {
-
-            // --- FILTRE ÉNERGIE ---
+            // si incompatible alors on ignore (ex: Vidange sur Renault Zoe)
             if (energieVehicule != null && !type.estCompatible(energieVehicule)) {
-                continue; // On ignore (ex: Vidange sur Zoe)
+                continue;
             }
 
-            // On cherche la dernière intervention de ce type
-            // Attention : Intervention a maintenant une liste. On doit faire une jointure.
+
+            // Interrogation de la BDD pour avoir la dernière intervention de ce type
             List<Intervention> historique = em.createQuery(
                             "SELECT i FROM Intervention i JOIN i.typesIntervention t " +
                                     "WHERE i.vehicule = :v AND t = :type " +
@@ -172,15 +240,16 @@ public class GestionGarage {
                     .setMaxResults(1)
                     .getResultList();
 
+            // Calcul des kilomètres restants
             float dernierKmFait = 0;
             if (!historique.isEmpty()) {
                 dernierKmFait = historique.get(0).getKilometrage();
             }
 
-            // Calculs
             float prochainKm = dernierKmFait + type.getKilometrageMax();
             float kmRestants = prochainKm - v.getKilometrage();
 
+            // Affichage des entretiens avec le km correspondant
             StringBuilder sb = new StringBuilder();
             sb.append(type.getNom()).append(" : ");
 
@@ -197,9 +266,8 @@ public class GestionGarage {
     }
 
     // =========================================================================
-    // 4. RECHERCHES & UTILITAIRES
+    // Recherches Véhicule par immatriculation
     // =========================================================================
-
     public List<Vehicule> rechercherVehicules(String recherche) {
         if (recherche == null || recherche.isEmpty()) {
             return em.createQuery("SELECT v FROM Vehicule v", Vehicule.class).getResultList();
@@ -212,6 +280,9 @@ public class GestionGarage {
         return q.getResultList();
     }
 
+    // =========================================================================
+    // Recherches TypeVehicule par marque et nom
+    // =========================================================================
     public TypeVehicule trouverTypeVehicule(String marque, String modele) {
         try {
             return em.createQuery(
@@ -225,11 +296,17 @@ public class GestionGarage {
         }
     }
 
+    // =========================================================================
+    // Lister les clients
+    // =========================================================================
     public List<Client> getTousLesClients() {
         return em.createQuery("SELECT c FROM Client c ORDER BY c.nom ASC", Client.class)
                 .getResultList();
     }
 
+    // =========================================================================
+    // Lister les interventions concernant un véhicule
+    // =========================================================================
     public List<Intervention> getHistoriqueVehicule(String immat) {
         Vehicule v = em.find(Vehicule.class, immat);
         if (v == null) return new ArrayList<>();

@@ -3,6 +3,7 @@ package back;
 import back.EnumType.Energie;
 import back.EnumType.ZoneIntervention;
 import jakarta.persistence.*;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -12,6 +13,10 @@ import java.util.List;
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "categorie_type")
 public abstract class TypeIntervention {
+    // =========================================================================
+    // Attributs
+    // =========================================================================
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
@@ -20,14 +25,14 @@ public abstract class TypeIntervention {
     private float tauxHoraire;
     private float prix;
 
-    // NOUVEAU : Une intervention appartient à une zone (pour le clic sur le schéma)
     @Enumerated(EnumType.STRING)
     private ZoneIntervention zone;
 
-    // Relation Inverse ManyToMany (Une liste de types peut appartenir à plusieurs interventions)
+    // Many To Many Intervention
     @ManyToMany(mappedBy = "typesIntervention")
     private Collection<Intervention> interventions;
 
+    // Many To Many Pieces
     @ManyToMany
     @JoinTable(
             name = "ref_intervention_pieces",
@@ -40,7 +45,11 @@ public abstract class TypeIntervention {
     @Enumerated(EnumType.STRING)
     @CollectionTable(name = "type_intervention_energies", joinColumns = @JoinColumn(name = "id_type_intervention"))
     @Column(name = "energie_compatible")
-    private List<Energie> energiesCompatibles = new ArrayList<>();
+    private final List<Energie> energiesCompatibles = new ArrayList<>();
+
+    // =========================================================================
+    // Constructeurs
+    // =========================================================================
 
     public TypeIntervention() {
         this.nom = "default";
@@ -48,7 +57,7 @@ public abstract class TypeIntervention {
         this.interventions = new ArrayList<>();
         this.piecesUtilisees = new ArrayList<>();
         this.tauxHoraire = 90;
-        this.zone = ZoneIntervention.BLOC_MOTEUR; // Valeur par défaut
+        this.zone = ZoneIntervention.BLOC_MOTEUR;
     }
 
     public TypeIntervention(String nom, int duree, List<Pieces> piecesUtilisees, ZoneIntervention zone) {
@@ -61,6 +70,10 @@ public abstract class TypeIntervention {
         this.prix = 0;
         calculerPrixForfait();
     }
+
+    // =========================================================================
+    // Méthodes
+    // =========================================================================
 
     public void ajouterEnergieCompatible(Energie e) {
         if (!energiesCompatibles.contains(e)) energiesCompatibles.add(e);
@@ -82,18 +95,52 @@ public abstract class TypeIntervention {
         this.prix = coutMainDoeuvre + coutPieces;
     }
 
-    // Getters / Setters
-    public ZoneIntervention getZone() { return zone; }
-    public void setZone(ZoneIntervention zone) { this.zone = zone; }
-    public float getPrix() { return prix; }
-    public String getNom() { return nom; }
-    public void setNom(String nom) { this.nom = nom; }
-    public int getDuree() { return duree; }
-    public void setDuree(int duree) { this.duree = duree; }
-    public float getTauxHoraire() { return tauxHoraire; }
-    public void setTauxHoraire(float tauxHoraire) { this.tauxHoraire = tauxHoraire; }
-    public List<Pieces> getPiecesUtilisees() { return piecesUtilisees; }
+    // =========================================================================
+    // Setters
+    // =========================================================================
+
+    public void setZone(ZoneIntervention zone) {
+        this.zone = zone;
+    }
+    public void setNom(String nom) {
+        this.nom = nom;
+    }
+    public void setDuree(int duree) {
+        this.duree = duree;
+    }
+    public void setTauxHoraire(float tauxHoraire) {
+        this.tauxHoraire = tauxHoraire;
+    }
+
+    // =========================================================================
+    // Getters
+    // =========================================================================
+
+    public ZoneIntervention getZone() {
+        return zone;
+    }
+    public float getPrix() {
+        return prix;
+    }
+    public int getDuree() {
+        return duree;
+    }
+    public String getNom() {
+        return nom;
+    }
+    public float getTauxHoraire() {
+        return tauxHoraire;
+    }
+    public List<Pieces> getPiecesUtilisees() {
+        return piecesUtilisees;
+    }
+
+    // =========================================================================
+    // Equals, Hashcode & toString
+    // =========================================================================
 
     @Override
-    public String toString() { return this.nom + " (" + this.prix + "€)"; }
+    public String toString() {
+        return this.nom + " (" + this.prix + "€)";
+    }
 }

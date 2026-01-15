@@ -1,12 +1,18 @@
 package back;
 
 import jakarta.persistence.*;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Objects;
 
 @Entity
 public class Client {
+
+    // =========================================================================
+    // Attributs
+    // =========================================================================
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long idClient;
@@ -19,6 +25,10 @@ public class Client {
     @OneToMany(mappedBy = "proprietaire")
     private Collection<Vehicule> vehicules;
 
+    // =========================================================================
+    // Constructeurs
+    // =========================================================================
+
     public Client(String nom, String prenom, String mail, String adresse) {
         this.nom = nom;
         this.prenom = prenom;
@@ -26,39 +36,56 @@ public class Client {
         this.adresse = adresse;
         this.vehicules = new ArrayList<>();
     }
-    public Client(){}
 
-    public long getIdClient() {
-        return idClient;
+    public Client() {
     }
 
-    public String getNom() {
-        return nom;
+    public Client(String trim, String trim1, String trim2, String trim3, String trim4) {
     }
 
-    public String getPrenom() {
-        return prenom;
-    }
+    // =========================================================================
+    // Méthodes
+    // =========================================================================
 
-    public String getMail() {
-        return mail;
-    }
 
-    public String getAdresse() {
-        return adresse;
-    }
 
-    public Collection<Vehicule> getVehicules() {
-        return vehicules;
-    }
+    // =========================================================================
+    // Setters
+    // =========================================================================
 
     public void setVehicules(Collection<Vehicule> vehicules) {
         this.vehicules = vehicules;
     }
 
+    // =========================================================================
+    // Getters
+    // =========================================================================
+
+    public long getIdClient() {
+        return idClient;
+    }
+    public String getNom() {
+        return nom;
+    }
+    public String getPrenom() {
+        return prenom;
+    }
+    public String getMail() {
+        return mail;
+    }
+    public String getAdresse() {
+        return adresse;
+    }
+    public Collection<Vehicule> getVehicules() {
+        return vehicules;
+    }
     public String getIdentite() {
         return nom.toUpperCase() + " " + prenom;
     }
+
+    // =========================================================================
+    // Equals, Hashcode & toString
+    // =========================================================================
 
     @Override
     public boolean equals(Object o) {

@@ -5,22 +5,29 @@ import back.EnumType.Energie;
 import jakarta.persistence.*;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Objects;
 
 
 @Entity
 @Table(name = "type_vehicule")
 public class TypeVehicule {
+
+    // =========================================================================
+    // Attributs
+    // =========================================================================
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
     private String marque;
     private String modele;
+
     @Enumerated(EnumType.STRING)
     private Energie energie;
+
     @Enumerated(EnumType.STRING)
     private BoiteVitesse boiteVitesse;
+
     private int nbPlaces;
     private int nbPortes;
     private int puissance;
@@ -29,11 +36,13 @@ public class TypeVehicule {
     @OneToMany(mappedBy = "typeVehicule")
     private Collection<Vehicule> vehicules;
 
+    // =========================================================================
+    // Constructeurs
+    // =========================================================================
 
-    // Constructeur vide (obligatoire pour JPA)
-    public TypeVehicule() {}
+    public TypeVehicule() {
+    }
 
-    // Constructeur complet
     public TypeVehicule(String marque, String modele, Energie energie, BoiteVitesse boiteVitesse, int nbPlaces, int nbPortes, int puissance) {
         this.marque = marque;
         this.modele = modele;
@@ -43,6 +52,13 @@ public class TypeVehicule {
         this.nbPortes = nbPortes;
         this.puissance = puissance;
     }
+
+    public TypeVehicule(String marque, String modele, Energie nrj, BoiteVitesse bv) {
+    }
+
+    // =========================================================================
+    // Getters
+    // =========================================================================
 
     public String getModele() {
         return modele;
@@ -55,6 +71,10 @@ public class TypeVehicule {
     public Energie getEnergie() {
         return energie;
     }
+
+    // =========================================================================
+    // Equals, Hashcode & toString
+    // =========================================================================
 
     @Override
     public boolean equals(Object o) {
@@ -81,7 +101,6 @@ public class TypeVehicule {
                 ", immatsVehicules=" + vehicules +
                 '}';
     }
-
 }
 
 
