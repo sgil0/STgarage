@@ -5,7 +5,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 
-public class PanneauUrgences extends JPanel implements VehiculeSelectionListener {
+public class PanneauUrgences extends JPanel {
 
     private DefaultListModel<String> modele;
     private GestionGarage garage;
@@ -14,11 +14,8 @@ public class PanneauUrgences extends JPanel implements VehiculeSelectionListener
         this.garage = garage;
         this.setLayout(new BorderLayout());
 
-        // Largeur fixe pour la sidebar
-        this.setPreferredSize(new Dimension(320, 0));
-
-        this.setBorder(BorderFactory.createTitledBorder("URGENCES / ENTRETIENS"));
-        this.setBackground(new Color(255, 250, 250));
+        // On retire la couleur de fond et la bordure en dur pour laisser le parent gérer le design
+        this.setOpaque(false);
 
         modele = new DefaultListModel<>();
         JList<String> liste = new JList<>(modele);
@@ -32,42 +29,40 @@ public class PanneauUrgences extends JPanel implements VehiculeSelectionListener
                 if (c instanceof JComponent) {
                     JComponent jc = (JComponent) c;
                     String txt = value.toString();
-                    jc.setToolTipText(txt); // Affiche le texte complet au survol
+                    jc.setToolTipText(txt);
+
+                    // On garde le style visuel simple pour la liste
+                    jc.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5)); // Un peu d'air entre les lignes
 
                     if (txt.contains("URGENT")) {
-                        c.setForeground(Color.RED);
+                        c.setForeground(new Color(220, 53, 69)); // Rouge moderne
                         c.setFont(c.getFont().deriveFont(Font.BOLD));
                     } else {
-                        c.setForeground(new Color(0, 100, 0)); // Vert foncé
+                        c.setForeground(new Color(40, 167, 69)); // Vert moderne
                     }
                 }
                 return c;
             }
         });
 
-        this.add(new JScrollPane(liste), BorderLayout.CENTER);
-    }
+        // Suppression des bordures du JScrollPane pour un look épuré
+        JScrollPane scroll = new JScrollPane(liste);
+        scroll.setBorder(BorderFactory.createEmptyBorder());
+        scroll.getViewport().setOpaque(false);
+        scroll.setOpaque(false);
 
-
-    /**
-     * Méthode de l'interface VehiculeSelectionListener.
-     * Elle redirige simplement vers mettreAJour().
-     */
-    @Override
-    public void onVehiculeSelected(String immat) {
-        mettreAJour(immat);
+        this.add(scroll, BorderLayout.CENTER);
     }
 
     /**
-     * Méthode publique pour forcer la mise à jour (appelée par FenetrePrincipale).
+     * Méthode publique pour forcer la mise à jour.
+     * CORRECTION : On ne touche plus aux bordures ici !
      */
     public void mettreAJour(String immat) {
         modele.clear();
 
-        // Si aucun véhicule n'est sélectionné (ex: au démarrage)
         if (immat == null) {
-            ((javax.swing.border.TitledBorder)getBorder()).setTitle("URGENCES");
-            this.repaint();
+            modele.addElement("Sélectionnez un véhicule.");
             return;
         }
 
@@ -75,15 +70,13 @@ public class PanneauUrgences extends JPanel implements VehiculeSelectionListener
         List<String> urgences = garage.analyserUrgences(immat);
 
         if (urgences.isEmpty()) {
-            modele.addElement("Aucun entretien configuré.");
+            modele.addElement("✅ Aucun entretien à prévoir.");
         } else {
             for (String s : urgences) {
                 modele.addElement(s);
             }
         }
 
-        // Mise à jour du titre
-        ((javax.swing.border.TitledBorder)getBorder()).setTitle("URGENCES : " + immat);
         this.repaint();
     }
 }

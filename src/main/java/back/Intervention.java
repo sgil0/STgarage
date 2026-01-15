@@ -44,12 +44,10 @@ public class Intervention {
         this.date = LocalDate.now();
         this.kilometrage = kilometrage;
         this.vehicule = vehicule;
-        this.typesIntervention = types;
+        this.typesIntervention = new ArrayList<>(types);
         this.statut = StatutIntervention.PLANIFIEE;
-
         calculerTotaux(types);
 
-        // MAJ kilométrage vehicule
         if(this.vehicule != null) {
             this.vehicule.setKilometrage(this.kilometrage);
         }

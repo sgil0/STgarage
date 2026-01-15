@@ -11,39 +11,48 @@ public class FenetrePrincipale extends JFrame {
     public FenetrePrincipale() {
         this.garage = new GestionGarage();
 
-        this.setTitle("Auto21 - Gestion Garage");
+        this.setTitle("ST Garage - Gestion Garage");
         this.setSize(1300, 850);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setLocationRelativeTo(null);
 
+        // Thème Nimbus (Optionnel, cf réponse précédente)
+        try {
+            for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
+                if ("Nimbus".equals(info.getName())) {
+                    UIManager.setLookAndFeel(info.getClassName());
+                    break;
+                }
+            }
+        } catch (Exception e) {}
+
         this.setLayout(new BorderLayout());
 
-        // Création des panneaux
-        PanneauUrgences panneauUrgences = new PanneauUrgences(this.garage);
+        // Création des deux gros panneaux
         PanneauGestionVehicules panneauVehicules = new PanneauGestionVehicules(this.garage);
-
-        // ATTENTION : On utilise le nouveau panneau intelligent
         PanneauGestionInterventions panneauInterventions = new PanneauGestionInterventions(this.garage);
 
-        // --- CÂBLAGE MAGIQUE ---
-
-        // Quand on clique sur un véhicule :
+        // --- CÂBLAGE ---
+        // Quand on clique sur une ligne dans l'onglet 1 :
         panneauVehicules.ajouterEcouteurSelection(immat -> {
-            // 1. On met à jour la sidebar Urgences
-            panneauUrgences.mettreAJour(immat);
-
-            // 2. On charge automatiquement le véhicule dans l'onglet Interventions
+            // L'onglet 1 a déjà mis à jour son panneau "Urgences" en interne.
+            // On prévient juste l'onglet 2 pour charger le véhicule.
             panneauInterventions.chargerVehicule(immat);
         });
 
-        this.add(panneauUrgences, BorderLayout.WEST);
-
+        // Onglets
         JTabbedPane onglets = new JTabbedPane();
-        onglets.addTab("Gestion Véhicules", panneauVehicules);
+        onglets.setFont(new Font("SansSerif", Font.PLAIN, 14));
+
+        // Astuce padding interne des onglets
+        UIManager.put("TabbedPane.tabInsets", new Insets(10, 20, 10, 20));
+
+        onglets.addTab("Gestion Vehicules", panneauVehicules);
         onglets.addTab("Gestion Interventions", panneauInterventions);
 
         this.add(onglets, BorderLayout.CENTER);
 
+        // Fermeture propre
         this.addWindowListener(new java.awt.event.WindowAdapter() {
             @Override
             public void windowClosing(java.awt.event.WindowEvent windowEvent) {
@@ -54,8 +63,8 @@ public class FenetrePrincipale extends JFrame {
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            FenetrePrincipale fenetre = new FenetrePrincipale();
-            fenetre.setVisible(true);
+            FenetrePrincipale f = new FenetrePrincipale();
+            f.setVisible(true);
         });
     }
 }
