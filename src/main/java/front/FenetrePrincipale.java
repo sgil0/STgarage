@@ -22,7 +22,7 @@ public class FenetrePrincipale extends JFrame {
 
     public FenetrePrincipale() {
         this.garage = new GestionGarage();
-        this.setTitle("Auto2I - Gestion Garage");
+        this.setTitle("ST Garage - Gestion Garage");
         this.setSize(1350, 850);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setLocationRelativeTo(null);
