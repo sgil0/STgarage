@@ -27,7 +27,7 @@ Connectez-vous à votre serveur MySQL, créez une base de données nommée "stga
 Importez "stgarage.sql" disponible à la racine du projet.
 
 Pour la remplir, vous pouvez soit : 
-- importer la bdd "stgarage.sql" disponible à la racine du projet directement.
+- importer la bdd "stgarage_BDD.sql" disponible à la racine du projet directement.
 - utiliser le script utilitaire Main.java pour insérer un jeu de données de test (clients, véhicules, pièces, forfaits)
 
 ### 3. Configurer l'accès BDD
