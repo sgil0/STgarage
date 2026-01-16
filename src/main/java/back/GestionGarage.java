@@ -249,14 +249,18 @@ public class GestionGarage {
             float prochainKm = dernierKmFait + type.getKilometrageMax();
             float kmRestants = prochainKm - v.getKilometrage();
 
-            // Affichage des entretiens avec le km correspondant
             StringBuilder sb = new StringBuilder();
-            sb.append(type.getNom()).append(" : ");
+            sb.append(type.getNom());
+            sb.append(" : ");
 
             if (kmRestants <= 0) {
-                sb.append("URGENT (Dépassé de ").append(Math.abs(kmRestants)).append(" km)");
+                sb.append("URGENT (Depasse de ");
+                sb.append(Math.abs(kmRestants));
+                sb.append(" km)");
             } else {
-                sb.append("Dans ").append(kmRestants).append(" km");
+                sb.append("Dans ");
+                sb.append(kmRestants);
+                sb.append(" km");
             }
 
             rapport.add(sb.toString());
@@ -284,14 +288,16 @@ public class GestionGarage {
     // Recherches TypeVehicule par marque et nom
     // =========================================================================
     public TypeVehicule trouverTypeVehicule(String marque, String modele) {
-        try {
-            return em.createQuery(
-                            "SELECT t FROM TypeVehicule t WHERE LOWER(t.marque) = :marque AND LOWER(t.modele) = :modele",
-                            TypeVehicule.class)
-                    .setParameter("marque", marque.toLowerCase())
-                    .setParameter("modele", modele.toLowerCase())
-                    .getSingleResult();
-        } catch (NoResultException e) {
+        List<TypeVehicule> res = em.createQuery(
+                        "SELECT t FROM TypeVehicule t WHERE LOWER(t.marque) = :marque AND LOWER(t.modele) = :modele",
+                        TypeVehicule.class)
+                .setParameter("marque", marque.toLowerCase())
+                .setParameter("modele", modele.toLowerCase())
+                .getResultList();
+
+        if(res.size() > 0) {
+            return res.get(0);
+        } else {
             return null;
         }
     }

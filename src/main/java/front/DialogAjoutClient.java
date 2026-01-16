@@ -32,7 +32,7 @@ public class DialogAjoutClient extends JDialog {
     public DialogAjoutClient(JDialog parent, GestionGarage garage) {
         super(parent, "Nouveau Client", true);
         this.garage = garage;
-        this.setSize(400, 450); // Un peu moins haut car moins de champs
+        this.setSize(400, 450);
         this.setLocationRelativeTo(parent);
         this.setLayout(new BorderLayout());
         this.getContentPane().setBackground(COLOR_BG);
@@ -139,6 +139,11 @@ public class DialogAjoutClient extends JDialog {
     // =========================================================================
     // Getters
     // =========================================================================
-    public boolean isValide() { return valide; }
-    public Client getNouveauClient() { return nouveauClient; }
+    public boolean isValide() {
+        return valide;
+    }
+
+    public Client getNouveauClient() {
+        return nouveauClient;
+    }
 }
