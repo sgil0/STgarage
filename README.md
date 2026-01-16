@@ -62,7 +62,7 @@ Pour démarrer l'application il faut juste éxécuter "FenetrePrincipale.java".
 * **Algorithme d'analyse** : Comparaison automatique du kilométrage actuel avec les préconisations constructeur.
 * **Alertes Visuelles** : Notification immédiate des entretiens critiques (ex: "Distribution à faire d'urgence").
 
-### CRM Client
+### Gestion de la Clientèle
 * **Base de données clients** : Gestion des coordonnées et liaison avec les véhicules.
 * **Recherche rapide** : Moteur de recherche multicritères (Nom, Prénom, Email).
 
