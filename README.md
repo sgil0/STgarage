@@ -44,7 +44,25 @@ Ouvrez le fichier src/main/resources/META-INF/persistence.xml et modifiez les pr
 ```
 
 ### 4. Lancement de l'Application
-Pour démarrer l'application il faut juste éxécuter "FenetrePrincipale.java".
+Au premier démarrage et après set-up de la base de données, il faut d'abord modifier le fichier :
+```/src/main/java/resources/persistence.xml```
+
+Il faut modifier ces propriétés et les passer à "drop-and-create".
+
+```xml
+<property name="jakarta.persistence.schema-generation.database.action" value="drop-and-create"/>
+<property name="jakarta.persistence.schema-generation.scripts.action" value="drop-and-create"/>
+``` 
+
+Il faut ensuite éxécuter "FenetrePrincipale.java".
+Après ce premier démarage, il est primordial de remettre les valeurs de persistence.xml à "none"
+
+```xml
+<property name="jakarta.persistence.schema-generation.database.action" value="none"/>
+<property name="jakarta.persistence.schema-generation.scripts.action" value="none"/>
+```
+
+Vous pouvez maintenant utiliser l'application normalement en exécutant "FenetrePrincipale.java".
 
 ## Fonctionnalités Clés
 
